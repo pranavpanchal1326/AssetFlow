@@ -1034,23 +1034,26 @@ The `TransitionError` class in `services/lifecycle.js` carries a `status: 400` p
 
 ```mermaid
 graph TB
-    subgraph Local["Development / Demo (current)"]
-        ViteDev["Vite Dev Server<br/>:5173"]
-        NodeDev["Node.js Express<br/>:4000"]
-        SQLiteFile["assetflow.db"]
-        ViteDev -->|"proxy /api"| NodeDev
-        NodeDev --> SQLiteFile
-    end
 
-    subgraph Prod["Production (future)"]
-        Nginx["Nginx / Reverse Proxy<br/>TLS termination"]
-        StaticBuild["React static build<br/>(npm run build)"]
-        NodeProd["Node.js Express<br/>PM2 process manager"]
-        PG["PostgreSQL"]
-        Nginx --> StaticBuild
-        Nginx -->|"/api"| NodeProd
-        NodeProd --> PG
-    end
+subgraph Local["Development / Demo (Current)"]
+    Vite["Vite Dev Server (:5173)"]
+    Express["Express API (:4000)"]
+    DB["SQLite Database (assetflow.db)"]
+
+    Vite -->|API Requests| Express
+    Express --> DB
+end
+
+subgraph Production["Production Deployment (Future)"]
+    Nginx["Nginx Reverse Proxy"]
+    Frontend["React Static Build"]
+    Backend["Express API (PM2)"]
+    Postgres["PostgreSQL"]
+
+    Nginx --> Frontend
+    Nginx -->|API| Backend
+    Backend --> Postgres
+end
 ```
 
 **Current state:** The application runs as two development processes — Vite dev server for the frontend and Node.js for the backend. The database is a single SQLite file. This is appropriate for the hackathon demo and local development.
