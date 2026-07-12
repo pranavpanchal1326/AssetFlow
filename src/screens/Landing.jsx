@@ -81,7 +81,9 @@ export const Landing = ({ onEnterApp }) => {
           left: 0, 
           width: "100vw", 
           height: "100vh", 
-          zIndex: 1 
+          zIndex: 1,
+          filter: activeStep === 0 ? "blur(4px)" : "none",
+          transition: "filter 0.4s ease"
         }}
       >
         <ConstellationCanvas activeStep={activeStep} prefersReducedMotion={false} />
@@ -91,19 +93,38 @@ export const Landing = ({ onEnterApp }) => {
       <div className="story-scroll-container" style={{ position: "relative", zIndex: 10 }}>
         
         {/* Section 0: Hero Title & App Preview Mockup */}
-        <section className="story-section" style={{ height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: "100px 20px 20px" }}>
-          <div className="landing-headline-group" style={{ pointerEvents: "auto", display: "flex", flexDirection: "column", alignItems: "center" }}>
-            
+        <section className="story-section" style={{ height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: "80px 20px 20px" }}>
+          
+          {/* Glass Card for Title & Subtitle */}
+          <div 
+            className="landing-hero-card"
+            style={{ 
+              pointerEvents: "auto", 
+              textAlign: "center",
+              maxWidth: "600px",
+              padding: "24px 32px",
+              backgroundColor: "rgba(255, 255, 255, 0.85)",
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
+              border: "1px solid var(--hairline)",
+              borderRadius: "8px",
+              boxShadow: "var(--shadow-medium)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              marginBottom: "20px"
+            }}
+          >
             {/* Brand Pill Badge */}
-            <div className="brand-pill">
+            <div className="brand-pill" style={{ marginBottom: "12px" }}>
               <span className="brand-pill-dot" />
               <span>Introducing AssetFlow v1.0</span>
             </div>
 
-            <h1 style={{ fontSize: "40px", fontWeight: "700", color: "var(--ink)", marginBottom: "16px", letterSpacing: "-0.02em", textAlign: "center" }}>
+            <h1 style={{ fontSize: "32px", fontWeight: "700", color: "var(--ink)", marginBottom: "10px", letterSpacing: "-0.015em" }}>
               Every object has a person.
             </h1>
-            <p style={{ fontSize: "15px", color: "var(--text-2)", marginBottom: "28px", maxWidth: "500px", textAlign: "center", lineHeight: "1.5" }}>
+            <p style={{ fontSize: "14px", color: "var(--text-2)", marginBottom: "20px", maxWidth: "480px", lineHeight: "1.4" }}>
               A real-time spring physics constellation that tethers your physical inventory directly to live corporate custody.
             </p>
             
@@ -111,64 +132,62 @@ export const Landing = ({ onEnterApp }) => {
               <button 
                 className="btn btn-primary" 
                 onClick={onEnterApp}
-                style={{ padding: "12px 28px", height: "auto", fontSize: "14px", fontWeight: "600" }}
+                style={{ padding: "10px 20px", height: "36px", fontSize: "13px", fontWeight: "600" }}
               >
                 <span>Enter AssetFlow</span>
-                <ArrowRight size={14} />
+                <ArrowRight size={13} />
               </button>
               <button 
                 className="btn" 
                 onClick={() => setShowBlueprintModal(true)}
-                style={{ padding: "12px 24px", height: "auto", fontSize: "14px" }}
+                style={{ padding: "10px 16px", height: "36px", fontSize: "13px" }}
               >
-                <Eye size={14} />
-                <span>Specs & Blueprint</span>
+                <Eye size={13} />
+                <span>Blueprint Specs</span>
               </button>
             </div>
+          </div>
 
-            {/* Desktop Mockup Preview Frame */}
-            <div className="desktop-mockup">
-              <div className="desktop-mockup-header">
-                <span className="mock-dot" style={{ backgroundColor: "#FF5F56" }} />
-                <span className="mock-dot" style={{ backgroundColor: "#FFBD2E" }} />
-                <span className="mock-dot" style={{ backgroundColor: "#27C93F" }} />
-                <span style={{ fontSize: "10.5px", color: "var(--text-3)", fontFamily: "monospace", marginLeft: "12px" }}>http://localhost:5173/dashboard</span>
+          {/* Desktop Mockup Preview Frame (Placed outside the card to allow proper width expansion) */}
+          <div className="desktop-mockup" style={{ maxWidth: "760px", width: "100%", pointerEvents: "auto", marginTop: "0" }}>
+            <div className="desktop-mockup-header" style={{ height: "32px" }}>
+              <span className="mock-dot" style={{ backgroundColor: "#FF5F56", width: "8px", height: "8px" }} />
+              <span className="mock-dot" style={{ backgroundColor: "#FFBD2E", width: "8px", height: "8px" }} />
+              <span className="mock-dot" style={{ backgroundColor: "#27C93F", width: "8px", height: "8px" }} />
+              <span style={{ fontSize: "10px", color: "var(--text-3)", fontFamily: "monospace", marginLeft: "12px" }}>http://localhost:5173/dashboard</span>
+            </div>
+            <div className="desktop-mockup-body" style={{ height: "220px" }}>
+              <div className="mock-sidebar" style={{ width: "130px", padding: "12px 10px" }}>
+                <div className="mock-sidebar-item active" style={{ height: "18px", marginBottom: "8px" }} />
+                <div className="mock-sidebar-item" style={{ height: "18px", marginBottom: "8px" }} />
+                <div className="mock-sidebar-item" style={{ height: "18px" }} />
               </div>
-              <div className="desktop-mockup-body">
-                <div className="mock-sidebar">
-                  <div className="mock-sidebar-item active" style={{ width: "40px" }} />
-                  <div className="mock-sidebar-item" />
-                  <div className="mock-sidebar-item" />
-                  <div className="mock-sidebar-item" style={{ marginTop: "auto" }} />
+              <div className="mock-content" style={{ padding: "14px", gap: "12px" }}>
+                <div className="mock-topbar" style={{ height: "20px" }} />
+                <div className="mock-grid" style={{ gap: "10px" }}>
+                  <div className="mock-card" style={{ height: "56px", padding: "8px" }}>
+                    <span style={{ fontSize: "7px", color: "var(--text-3)" }}>ACTIVE CUSTODY</span>
+                    <span style={{ fontSize: "14px", fontWeight: "600" }}>14 Assets</span>
+                  </div>
+                  <div className="mock-card" style={{ height: "56px", padding: "8px" }}>
+                    <span style={{ fontSize: "7px", color: "var(--text-3)" }}>OVERDUE STATUS</span>
+                    <span style={{ fontSize: "14px", fontWeight: "600", color: "var(--alert)" }}>2 Overdue</span>
+                  </div>
+                  <div className="mock-card" style={{ height: "56px", padding: "8px" }}>
+                    <span style={{ fontSize: "7px", color: "var(--text-3)" }}>ACTIVE AUDIT</span>
+                    <span style={{ fontSize: "14px", fontWeight: "600", color: "var(--available)" }}>96.5% Acc</span>
+                  </div>
                 </div>
-                <div className="mock-content">
-                  <div className="mock-topbar" />
-                  <div className="mock-grid">
-                    <div className="mock-card">
-                      <span style={{ fontSize: "8px", textTransform: "uppercase", color: "var(--text-3)" }}>ACTIVE CUSTODY</span>
-                      <span style={{ fontSize: "18px", fontWeight: "600", color: "var(--ink)" }}>14 Assets</span>
-                    </div>
-                    <div className="mock-card">
-                      <span style={{ fontSize: "8px", textTransform: "uppercase", color: "var(--text-3)" }}>OVERDUE STATUS</span>
-                      <span style={{ fontSize: "18px", fontWeight: "600", color: "var(--alert)" }}>2 Overdue</span>
-                    </div>
-                    <div className="mock-card">
-                      <span style={{ fontSize: "8px", textTransform: "uppercase", color: "var(--text-3)" }}>ACTIVE AUDIT</span>
-                      <span style={{ fontSize: "18px", fontWeight: "600", color: "var(--available)" }}>96.5% Acc</span>
-                    </div>
-                  </div>
-                  <div className="mock-table">
-                    <div className="mock-table-row" style={{ width: "60%", height: "8px" }} />
-                    <div className="mock-table-row" style={{ width: "80%" }} />
-                    <div className="mock-table-row" style={{ width: "70%" }} />
-                  </div>
+                <div className="mock-table" style={{ padding: "8px" }}>
+                  <div className="mock-table-row" style={{ height: "6px", marginBottom: "6px", width: "50%" }} />
+                  <div className="mock-table-row" style={{ height: "6px", width: "70%" }} />
                 </div>
               </div>
             </div>
+          </div>
 
-            <div style={{ marginTop: "32px", fontSize: "11px", color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.055em", animation: "pulse-red 2s infinite" }}>
-              Scroll down to inspect active custody tethers
-            </div>
+          <div style={{ marginTop: "20px", fontSize: "10.5px", color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.055em", animation: "pulse-red 2s infinite" }}>
+            Scroll down to inspect active custody tethers
           </div>
         </section>
 
