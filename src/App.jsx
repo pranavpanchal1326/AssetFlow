@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { AppProvider, AppContext } from "./context/AppContext";
 import { AppFrame } from "./components/AppFrame";
 import { Landing } from "./screens/Landing";
@@ -18,6 +18,13 @@ function AppContent() {
   const { currentUser, currentView } = useContext(AppContext);
   const [showLogin, setShowLogin] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Reset login page state on logout (currentUser becomes null)
+  useEffect(() => {
+    if (!currentUser) {
+      setShowLogin(false);
+    }
+  }, [currentUser]);
 
   // Handler to coordinate global search query shifts
   const handleSearchQueryChange = (query) => {

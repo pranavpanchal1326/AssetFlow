@@ -288,7 +288,7 @@ export const Objects = ({ globalSearchQuery = "" }) => {
         {/* Selected Asset Details sheet */}
         {selectedAsset && (
           <div 
-            className="data-table-card" 
+            className="data-table-card detail-drawer-enter" 
             style={{ 
               width: "420px", 
               padding: "24px", 
