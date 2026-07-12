@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
 
-export const ConstellationCanvas = ({ activeStep = 0, prefersReducedMotion = false }) => {
+export const ConstellationCanvas = ({ activeStep = 0, prefersReducedMotion = false, theme = "light" }) => {
   const canvasRef = useRef(null);
   const mouseRef = useRef({ x: null, y: null });
 
@@ -10,6 +10,7 @@ export const ConstellationCanvas = ({ activeStep = 0, prefersReducedMotion = fal
 
     const ctx = canvas.getContext("2d");
     let animationFrameId;
+    let frameCount = 0;
 
     // Canvas size
     const resizeCanvas = () => {
@@ -21,9 +22,21 @@ export const ConstellationCanvas = ({ activeStep = 0, prefersReducedMotion = fal
 
     // (Mouse events moved below camera initialization to prevent reference errors)
 
-    // Color tokens
-    const colors = {
-      canvasBg: "transparent", // Transparent lets it float behind glassmorphism
+    // Dynamic Color tokens based on theme / context
+    const isDark = theme === "dark" || document.querySelector(".landing-hero") !== null;
+    const colors = isDark ? {
+      canvasBg: "transparent",
+      ink: "#FFFFFF",
+      text2: "#E4E4E7",
+      text3: "#71717A",
+      hairline: "rgba(255, 255, 255, 0.15)",
+      accent: "#5E8CFC",
+      accentSoft: "rgba(94, 140, 252, 0.15)",
+      alert: "#EF4444",
+      alertSoft: "rgba(239, 68, 68, 0.15)",
+      nodeBg: "#18181B"
+    } : {
+      canvasBg: "transparent",
       ink: "#18181B",
       text2: "#52525B",
       text3: "#8E8E93",
@@ -31,7 +44,8 @@ export const ConstellationCanvas = ({ activeStep = 0, prefersReducedMotion = fal
       accent: "#2C5FE0",
       accentSoft: "rgba(44, 95, 224, 0.08)",
       alert: "#C0392B",
-      alertSoft: "rgba(192, 57, 43, 0.08)"
+      alertSoft: "rgba(192, 57, 43, 0.08)",
+      nodeBg: "#FFFFFF"
     };
 
     // Node & Link structures
@@ -155,6 +169,7 @@ export const ConstellationCanvas = ({ activeStep = 0, prefersReducedMotion = fal
 
     // The Main Physics & Drawing loop
     const tick = () => {
+      frameCount++;
       const cx = canvas.width / 2;
       const cy = canvas.height / 2;
 
@@ -407,50 +422,85 @@ export const ConstellationCanvas = ({ activeStep = 0, prefersReducedMotion = fal
       }
 
       // 2. Draw Nodes
-      nodes.forEach(node => {
-        const opacity = node.opacity !== undefined ? node.opacity : 1.0;
+      nodes.forEach((node, index) => {
+        // Materialization sequence
+        if (node.currentOpacity === undefined) {
+          node.currentOpacity = 0;
+        }
+        const delay = index * 5; // stagger delay frames
+        if (frameCount > delay) {
+          node.currentOpacity += (1.0 - node.currentOpacity) * 0.05;
+        }
+
+        // Proximity hover/glow factor
+        let hoverFactor = 0;
+        let isHovered = false;
+        if (mouseRef.current.x !== null && mouseRef.current.y !== null && !prefersReducedMotion) {
+          const screenX = (node.x - camera.x) * camera.zoom + canvas.width / 2;
+          const screenY = (node.y - camera.y) * camera.zoom + canvas.height / 2;
+          const dx = screenX - mouseRef.current.x;
+          const dy = screenY - mouseRef.current.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < 130) {
+            hoverFactor = (130 - dist) / 130; // 0 to 1
+            isHovered = true;
+          }
+        }
+
+        const opacity = (node.opacity !== undefined ? node.opacity : 1.0) * node.currentOpacity;
         ctx.globalAlpha = opacity;
 
+        // Draw proximity halo glow
+        if (hoverFactor > 0) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, node.radius + hoverFactor * 10, 0, Math.PI * 2);
+          ctx.fillStyle = colors.accentSoft;
+          ctx.shadowColor = colors.accent;
+          ctx.shadowBlur = 12 * hoverFactor;
+          ctx.fill();
+          ctx.restore();
+        }
+
         if (node.type === "person") {
-          // Person Node: Round Avatar with drop shadow feel
+          // Person Node: Round Avatar
           ctx.beginPath();
           ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
-          ctx.fillStyle = "#FFFFFF";
+          ctx.fillStyle = colors.nodeBg;
           ctx.fill();
           
-          ctx.strokeStyle = colors.hairline;
-          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = isHovered ? colors.accent : colors.hairline;
+          ctx.lineWidth = isHovered ? 2.0 : 1.5;
           ctx.stroke();
 
           // Initials text
           ctx.font = "bold 11px 'Inter Tight'";
-          ctx.fillStyle = colors.text2;
+          ctx.fillStyle = isHovered ? colors.accent : colors.text2;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
           ctx.fillText(node.initials, node.x, node.y);
 
-          // Name label with collision drop shadow text backing
+          // Name label below
           ctx.font = "500 11px 'Inter Tight'";
           ctx.fillStyle = colors.ink;
           
-          // Clear text backing
-          ctx.shadowColor = "#FBFBFA";
+          ctx.shadowColor = isDark ? "#0A0A0B" : "#FBFBFA";
           ctx.shadowBlur = 4;
           ctx.fillText(node.label, node.x, node.y + node.radius + 14);
           ctx.shadowBlur = 0;
 
         } else if (node.type === "asset") {
-          // Asset Node: Mono stamped Tag Plate
-          const width = 64;
+          // Asset Node: Tag Plate
+          const width = 68;
           const height = 24;
           const rx = node.x - width / 2;
           const ry = node.y - height / 2;
 
-          ctx.fillStyle = "#FFFFFF";
+          ctx.fillStyle = colors.nodeBg;
           ctx.fillRect(rx, ry, width, height);
           
-          ctx.strokeStyle = node.id === "AF-0008" && activeStep === 2 ? colors.alert : colors.hairline;
-          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = node.id === "AF-0008" && activeStep === 2 ? colors.alert : isHovered ? colors.accent : colors.hairline;
+          ctx.lineWidth = (node.id === "AF-0008" && activeStep === 2) || isHovered ? 2.0 : 1.5;
           ctx.strokeRect(rx, ry, width, height);
 
           // Draw tag text
@@ -582,7 +632,7 @@ export const ConstellationCanvas = ({ activeStep = 0, prefersReducedMotion = fal
       canvas.removeEventListener("mousedown", handleMouseDown);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [activeStep, prefersReducedMotion]);
+  }, [activeStep, prefersReducedMotion, theme]);
 
   return <canvas ref={canvasRef} style={{ display: "block", width: "100%", height: "100%" }} />;
 };

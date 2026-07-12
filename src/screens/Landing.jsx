@@ -1,36 +1,52 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
+import { AppContext } from "../context/AppContext";
 import { ConstellationCanvas } from "../components/ConstellationCanvas";
 import { 
   ArrowRight, 
   Layers, 
   ShieldCheck, 
   Activity, 
-  Compass, 
   Lock, 
   Eye, 
   FileText,
-  UserCheck,
   Sun,
   Moon,
   Search,
   Terminal,
   Calendar,
   Wrench,
-  CheckSquare
+  CheckSquare,
+  Sparkles,
+  MousePointer,
+  ChevronDown
 } from "lucide-react";
 
 export const Landing = ({ onEnterApp }) => {
+  const { assets, handoffs, bookings } = useContext(AppContext);
   const [activeStep, setActiveStep] = useState(0);
   const [showBlueprintModal, setShowBlueprintModal] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
-  const [theme, setTheme] = useState("light");
+  const [theme, setTheme] = useState("dark");
   const [commandQuery, setCommandQuery] = useState("");
   const containerRef = useRef(null);
 
-  // Sync theme with body/HTML document attribute
+  // Sync theme with body attribute
   useEffect(() => {
-    document.body.setAttribute("data-theme", theme);
-  }, [theme]);
+    document.body.setAttribute("data-theme", "dark"); // Lock landing page to dark theme
+  }, []);
+
+  // Update active step based on scroll position
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPos = window.scrollY;
+      const height = window.innerHeight || 800;
+      const step = Math.min(Math.floor((scrollPos + height / 2) / height), 5);
+      setActiveStep(step);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Command Palette global keyboard listener
   useEffect(() => {
@@ -55,88 +71,108 @@ export const Landing = ({ onEnterApp }) => {
     });
   };
 
-  const toggleTheme = () => {
-    setTheme(prev => prev === "light" ? "dark" : "light");
-  };
-
   const commandPaletteItems = [
     { label: "Enter AssetFlow App", shortcut: "Enter", action: onEnterApp },
-    { label: `Toggle Theme (Currently ${theme === "light" ? "Light" : "Dark"})`, shortcut: "⌘T", action: toggleTheme },
     { label: "View Technical Blueprint Spec", shortcut: "⌘B", action: () => { setShowBlueprintModal(true); setShowCommandPalette(false); } },
-    { label: "Scroll to Living Constellation", shortcut: "1", action: () => { scrollToSection(0); setShowCommandPalette(false); } },
-    { label: "Scroll to Atom 1: Handoffs", shortcut: "2", action: () => { scrollToSection(1); setShowCommandPalette(false); } },
-    { label: "Scroll to Atom 2: Overdue alert", shortcut: "3", action: () => { scrollToSection(2); setShowCommandPalette(false); } },
-    { label: "Scroll to Atom 4: Conflict Refusal", shortcut: "4", action: () => { scrollToSection(4); setShowCommandPalette(false); } }
+    { label: "Scroll to Active Constellation", shortcut: "1", action: () => { scrollToSection(0); setShowCommandPalette(false); } },
+    { label: "Scroll to Handoff Flow", shortcut: "2", action: () => { scrollToSection(2); setShowCommandPalette(false); } },
+    { label: "Scroll to Tension & Overdue", shortcut: "3", action: () => { scrollToSection(3); setShowCommandPalette(false); } },
+    { label: "Scroll to Collision Rejection", shortcut: "4", action: () => { scrollToSection(4); setShowCommandPalette(false); } },
+    { label: "Scroll to Live Bridge Preview", shortcut: "5", action: () => { scrollToSection(5); setShowCommandPalette(false); } }
   ];
 
   const filteredCommandItems = commandPaletteItems.filter(item => 
     item.label.toLowerCase().includes(commandQuery.toLowerCase())
   );
 
+  // HUD steps for scrollytelling
+  const hudSteps = [
+    { label: "The Void", index: 0 },
+    { label: "Interactive Pulse", index: 1 },
+    { label: "Custody Flow", index: 2 },
+    { label: "Spring Tension", index: 3 },
+    { label: "Governance Snaps", index: 4 },
+    { label: "Product Bridge", index: 5 }
+  ];
+
   return (
     <div className="landing-hero" ref={containerRef}>
       
       {/* Sticky Premium Topbar Header */}
-      <header className="landing-nav" style={{ height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <header className="landing-nav">
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <Activity size={18} color="var(--accent)" />
-          <span style={{ fontWeight: "700", fontSize: "16px", letterSpacing: "-0.02em" }}>AssetFlow</span>
+          <Activity size={18} color="#5E8CFC" style={{ filter: "drop-shadow(0 0 6px #5E8CFC)" }} />
+          <span style={{ fontWeight: "700", fontSize: "16px", letterSpacing: "-0.02em", color: "#FFFFFF" }}>AssetFlow</span>
         </div>
         
         <nav className="landing-nav-links">
           <span className="landing-nav-link" onClick={() => scrollToSection(0)}>Constellation</span>
-          <span className="landing-nav-link" onClick={() => scrollToSection(1)}>Handoffs</span>
-          <span className="landing-nav-link" onClick={() => scrollToSection(2)}>Overdue</span>
-          <span className="landing-nav-link" onClick={() => scrollToSection(4)}>Governance</span>
+          <span className="landing-nav-link" onClick={() => scrollToSection(2)}>Flows</span>
+          <span className="landing-nav-link" onClick={() => scrollToSection(3)}>Tension</span>
+          <span className="landing-nav-link" onClick={() => scrollToSection(5)}>Triage Specs</span>
         </nav>
 
         <div style={{ display: "flex", alignItems: "center", gap: "12px", height: "36px" }}>
-          {/* Quick-Search Search Trigger Button */}
+          {/* Command Palette Trigger */}
           <button 
             className="btn" 
             onClick={() => setShowCommandPalette(true)}
-            style={{ height: "36px", padding: "0 12px", fontSize: "12px", gap: "6px", display: "flex", alignItems: "center", justifyContent: "center" }}
-          >
-            <Search size={12} />
-            <span style={{ color: "var(--text-3)" }}>Search</span>
-            <kbd className="cmd-palette-shortcut" style={{ fontSize: "8px", padding: "1px 4px" }}>Ctrl+K</kbd>
-          </button>
-
-          {/* Sun/Moon Theme Switcher Toggle */}
-          <button 
-            className="theme-toggle-btn" 
-            onClick={toggleTheme}
-            title={`Switch to ${theme === "light" ? "Dark" : "Light"} Mode`}
             style={{ 
-              display: "inline-flex", 
-              alignItems: "center", 
-              justifyContent: "center", 
               height: "36px", 
-              width: "36px", 
-              border: "1px solid var(--hairline)", 
-              borderRadius: "6px", 
-              backgroundColor: "var(--fill)", 
-              color: "var(--ink)", 
-              cursor: "pointer",
-              transition: "var(--transition-smooth)"
+              padding: "0 12px", 
+              fontSize: "12px", 
+              gap: "6px", 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "center",
+              backgroundColor: "rgba(255, 255, 255, 0.04)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              color: "#E4E4E7"
             }}
           >
-            {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
+            <Search size={12} />
+            <span style={{ color: "rgba(255, 255, 255, 0.4)" }}>Search</span>
+            <kbd className="cmd-palette-shortcut" style={{ fontSize: "8px", padding: "1px 4px", border: "1px solid rgba(255, 255, 255, 0.15)", backgroundColor: "rgba(0, 0, 0, 0.2)" }}>Ctrl+K</kbd>
           </button>
 
+          {/* Blueprint Specs Modal Trigger */}
           <button 
             className="btn" 
             onClick={() => setShowBlueprintModal(true)}
-            style={{ height: "36px", fontSize: "12px", borderStyle: "dashed", display: "inline-flex", alignItems: "center", gap: "6px", justifyContent: "center" }}
+            style={{ 
+              height: "36px", 
+              fontSize: "12px", 
+              borderStyle: "dashed", 
+              display: "inline-flex", 
+              alignItems: "center", 
+              gap: "6px", 
+              justifyContent: "center",
+              backgroundColor: "transparent",
+              borderColor: "rgba(255, 255, 255, 0.2)",
+              color: "#E4E4E7"
+            }}
           >
             <FileText size={12} />
             <span>Blueprint</span>
           </button>
           
+          {/* Primary CTA */}
           <button 
             className="btn btn-primary" 
             onClick={onEnterApp} 
-            style={{ height: "36px", fontSize: "12px", display: "inline-flex", alignItems: "center", gap: "6px", justifyContent: "center" }}
+            style={{ 
+              height: "36px", 
+              fontSize: "12px", 
+              display: "inline-flex", 
+              alignItems: "center", 
+              gap: "6px", 
+              justifyContent: "center",
+              backgroundColor: "#2C5FE0",
+              borderColor: "#2C5FE0",
+              color: "#FFFFFF",
+              fontWeight: "600",
+              boxShadow: "0 0 12px rgba(44, 95, 224, 0.4)"
+            }}
           >
             <span>Enter App</span>
             <ArrowRight size={12} />
@@ -154,269 +190,230 @@ export const Landing = ({ onEnterApp }) => {
           width: "100vw", 
           height: "100vh", 
           zIndex: 1,
-          filter: "none",
-          transition: "filter 0.4s ease"
+          pointerEvents: "auto"
         }}
       >
-        <ConstellationCanvas activeStep={activeStep} prefersReducedMotion={false} />
+        <ConstellationCanvas activeStep={activeStep} prefersReducedMotion={false} theme="dark" />
+      </div>
+
+      {/* Scroll HUD dot navigation */}
+      <div className="scroll-hud">
+        {hudSteps.map((step) => (
+          <div 
+            key={step.index}
+            className={`scroll-hud-dot ${activeStep === step.index ? "active" : ""}`}
+            onClick={() => scrollToSection(step.index)}
+            title={step.label}
+          />
+        ))}
       </div>
 
       {/* Floating Story Elements */}
-      <div className="story-scroll-container" style={{ position: "relative", zIndex: 10 }}>
+      <div className="story-scroll-container">
         
-        {/* Section 0: Hero Title & App Preview Mockup (Split screen layout) */}
-        <section className="story-section" style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "80px 40px 20px" }}>
-          
-          <div className="hero-split-container" style={{ display: "flex", flexDirection: "row", gap: "48px", alignItems: "center", justifyContent: "space-between", width: "100%", maxWidth: "1200px", zIndex: 10, pointerEvents: "none" }}>
-            
-            {/* Left: Text Card */}
-            <div 
-              className="landing-hero-card"
-              style={{ 
-                pointerEvents: "auto", 
-                textAlign: "left",
-                flex: "1",
-                maxWidth: "520px",
-                padding: "36px",
-                backgroundColor: "var(--surface)",
-                border: "1px solid var(--hairline)",
-                borderRadius: "8px",
-                boxShadow: "var(--shadow-premium)",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-start",
-                gap: "16px",
-                marginBottom: 0
-              }}
-            >
-              {/* Brand Pill Badge */}
-              <div className="brand-pill" style={{ marginBottom: "0px" }}>
-                <span className="brand-pill-dot" />
-                <span>Introducing AssetFlow v1.0</span>
-              </div>
-
-              <h1 style={{ margin: 0, fontSize: "40px", fontWeight: "700", lineHeight: "1.15", letterSpacing: "-0.035em" }}>Every object has a person.</h1>
-              <p style={{ fontSize: "14px", color: "var(--text-2)", margin: 0, lineHeight: "1.5" }}>
-                A real-time spring physics constellation that tethers your physical inventory directly to live corporate custody.
-              </p>
-              
-              <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
-                <button 
-                  className="btn btn-primary" 
-                  onClick={onEnterApp}
-                  style={{ padding: "0 20px", height: "38px", fontSize: "13px", fontWeight: "600", display: "inline-flex", alignItems: "center", gap: "6px" }}
-                >
-                  <span>Enter AssetFlow</span>
-                  <ArrowRight size={13} />
-                </button>
-                <button 
-                  className="btn" 
-                  onClick={() => setShowBlueprintModal(true)}
-                  style={{ padding: "0 16px", height: "38px", fontSize: "13px", display: "inline-flex", alignItems: "center", gap: "6px" }}
-                >
-                  <Eye size={13} />
-                  <span>Blueprint Specs</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Right: Mockup Card */}
-            <div style={{ flex: "1.2", maxWidth: "620px", width: "100%", pointerEvents: "auto" }}>
-              <div className="desktop-mockup" style={{ marginTop: "0px", transition: "var(--transition-slow)" }}>
-                <div className="desktop-mockup-header" style={{ height: "36px", borderBottom: "1px solid var(--hairline)" }}>
-                  <span className="mock-dot" style={{ backgroundColor: "#FF5F56", width: "8px", height: "8px" }} />
-                  <span className="mock-dot" style={{ backgroundColor: "#FFBD2E", width: "8px", height: "8px" }} />
-                  <span className="mock-dot" style={{ backgroundColor: "#27C93F", width: "8px", height: "8px" }} />
-                  <span style={{ fontSize: "10px", color: "var(--text-3)", fontFamily: "monospace", marginLeft: "12px" }}>http://localhost:5173/dashboard</span>
-                </div>
-                <div className="desktop-mockup-body" style={{ height: "240px" }}>
-                  
-                  {/* Mock Sidebar with Lucide Icons */}
-                  <div className="mock-sidebar" style={{ width: "140px", padding: "16px 12px", borderRight: "1px solid var(--hairline)", backgroundColor: "var(--surface)" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", height: "20px", marginBottom: "12px", opacity: 0.85 }}>
-                      <Terminal size={12} color="var(--accent)" />
-                      <div style={{ height: "6px", width: "50px", backgroundColor: "var(--text-3)", borderRadius: "2px" }} />
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", height: "20px", marginBottom: "12px", opacity: 0.4 }}>
-                      <Calendar size={12} />
-                      <div style={{ height: "6px", width: "45px", backgroundColor: "var(--text-3)", borderRadius: "2px" }} />
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", height: "20px", marginBottom: "12px", opacity: 0.4 }}>
-                      <Wrench size={12} />
-                      <div style={{ height: "6px", width: "40px", backgroundColor: "var(--text-3)", borderRadius: "2px" }} />
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", height: "20px", opacity: 0.4 }}>
-                      <CheckSquare size={12} />
-                      <div style={{ height: "6px", width: "45px", backgroundColor: "var(--text-3)", borderRadius: "2px" }} />
-                    </div>
-                  </div>
-
-                  {/* Mock Dashboard Area */}
-                  <div className="mock-content" style={{ padding: "16px", gap: "12px", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-                    <div className="mock-topbar" style={{ height: "24px", display: "flex", alignItems: "center", padding: "0 8px", fontSize: "10px", color: "var(--text-3)", fontWeight: "500", backgroundColor: "var(--surface)", border: "1px solid var(--hairline)", borderRadius: "4px" }}>
-                      <span>Triage Dashboard</span>
-                    </div>
-                    
-                    {/* 3 KPI Widgets */}
-                    <div className="mock-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
-                      <div className="mock-card" style={{ height: "54px", padding: "8px", display: "flex", flexDirection: "column", justifyContent: "space-between", backgroundColor: "var(--surface)", border: "1px solid var(--hairline)", borderRadius: "4px" }}>
-                        <span style={{ fontSize: "7px", color: "var(--text-3)", fontWeight: "600", textTransform: "uppercase" }}>Active Custody</span>
-                        <span style={{ fontSize: "12px", fontWeight: "600", color: "var(--ink)", fontFamily: "monospace" }}>14 Assets</span>
-                      </div>
-                      <div className="mock-card" style={{ height: "54px", padding: "8px", display: "flex", flexDirection: "column", justifyContent: "space-between", backgroundColor: "var(--surface)", border: "1px solid var(--hairline)", borderRadius: "4px" }}>
-                        <span style={{ fontSize: "7px", color: "var(--text-3)", fontWeight: "600", textTransform: "uppercase" }}>Overdue Warning</span>
-                        <span style={{ fontSize: "12px", fontWeight: "600", color: "var(--alert)", fontFamily: "monospace" }}>2 Overdue</span>
-                      </div>
-                      <div className="mock-card" style={{ height: "54px", padding: "8px", display: "flex", flexDirection: "column", justifyContent: "space-between", backgroundColor: "var(--surface)", border: "1px solid var(--hairline)", borderRadius: "4px" }}>
-                        <span style={{ fontSize: "7px", color: "var(--text-3)", fontWeight: "600", textTransform: "uppercase" }}>Audit Health</span>
-                        <span style={{ fontSize: "12px", fontWeight: "600", color: "var(--available)", fontFamily: "monospace" }}>96.5% Acc</span>
-                      </div>
-                    </div>
-                    
-                    {/* Mock Table and SVG Chart */}
-                    <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "10px", flex: 1, minHeight: 0 }}>
-                      <div className="mock-table" style={{ padding: "8px", display: "flex", flexDirection: "column", gap: "6px", backgroundColor: "var(--surface)", border: "1px solid var(--hairline)", borderRadius: "4px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--hairline-2)", paddingBottom: "4px", fontSize: "7px", color: "var(--text-3)", fontWeight: "600", textTransform: "uppercase" }}>
-                          <span>Asset</span>
-                          <span>Custodian</span>
-                        </div>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <span className="mock-badge-tag" style={{ fontSize: "8px", padding: "1px 4px", border: "1px dotted var(--accent)", color: "var(--accent)", backgroundColor: "var(--accent-soft)", borderRadius: "2px" }}>AF-0001</span>
-                          <div className="mock-person-row" style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "9px" }}>
-                            <span className="mock-avatar-circle" style={{ width: "14px", height: "14px", borderRadius: "50%", backgroundColor: "var(--fill)", border: "1px solid var(--hairline)", fontSize: "7px", display: "flex", alignItems: "center", justifyContent: "center" }}>PS</span>
-                            <span>Priya</span>
-                          </div>
-                        </div>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <span className="mock-badge-tag" style={{ fontSize: "8px", padding: "1px 4px", border: "1px dotted var(--alert)", color: "var(--alert)", backgroundColor: "var(--alert-soft)", borderRadius: "2px" }}>AF-0008</span>
-                          <div className="mock-person-row" style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "9px" }}>
-                            <span className="mock-avatar-circle" style={{ width: "14px", height: "14px", borderRadius: "50%", backgroundColor: "var(--fill)", border: "1px solid var(--hairline)", fontSize: "7px", display: "flex", alignItems: "center", justifyContent: "center" }}>ER</span>
-                            <span>Elena</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mock-table" style={{ padding: "8px", display: "flex", flexDirection: "column", justifyContent: "space-between", backgroundColor: "var(--surface)", border: "1px solid var(--hairline)", borderRadius: "4px" }}>
-                        <span style={{ fontSize: "7px", color: "var(--text-3)", fontWeight: "600", textTransform: "uppercase" }}>Weekly Density</span>
-                        
-                        <div className="mock-svg-chart" style={{ display: "flex", alignItems: "flex-end", height: "48px", gap: "6px", width: "100%", paddingTop: "4px" }}>
-                          {[30, 55, 20, 75, 45, 90, 35].map((h, idx) => (
-                            <div 
-                              key={idx} 
-                              className="mock-chart-bar" 
-                              style={{ 
-                                flex: 1,
-                                height: `${h}%`, 
-                                backgroundColor: idx === 5 ? "var(--alert)" : "var(--accent)",
-                                borderTopLeftRadius: "2px",
-                                borderTopRightRadius: "2px"
-                              }} 
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-              </div>
-            </div>
-
+        {/* ACT 1: ARRIVAL — The Void Hero */}
+        <section className="story-section" style={{ height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "flex-start", paddingLeft: "10%" }}>
+          <div className="brand-pill">
+            <span className="brand-pill-dot" />
+            <span>AssetFlow v1.5 · Cinematic Edition</span>
           </div>
 
-          <div style={{ marginTop: "20px", fontSize: "10.5px", color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.055em", animation: "pulse-red 2s infinite" }}>
-            Scroll down to inspect active custody tethers
+          <h1 className="landing-fraunces-headline" style={{ marginBottom: "20px" }}>
+            Your inventory<br />is alive.
+          </h1>
+          
+          <p style={{ fontSize: "16px", color: "rgba(255, 255, 255, 0.6)", maxWidth: "540px", lineHeight: "1.6", margin: "0 0 32px" }}>
+            A dynamic, spring-physics constellation linking physical corporate assets directly to live employee tethers.
+          </p>
+
+          <div style={{ display: "flex", gap: "16px" }} className="landing-hero-card">
+            <button 
+              className="btn btn-primary" 
+              onClick={onEnterApp}
+              style={{ 
+                padding: "0 24px", 
+                height: "44px", 
+                fontSize: "14px", 
+                fontWeight: "600", 
+                display: "inline-flex", 
+                alignItems: "center", 
+                gap: "8px",
+                backgroundColor: "#2C5FE0",
+                borderColor: "#2C5FE0",
+                boxShadow: "0 0 16px rgba(44, 95, 224, 0.5)"
+              }}
+            >
+              <span>Explore Dashboard</span>
+              <ArrowRight size={14} />
+            </button>
+            <button 
+              className="btn" 
+              onClick={() => setShowBlueprintModal(true)}
+              style={{ 
+                padding: "0 20px", 
+                height: "44px", 
+                fontSize: "14px", 
+                display: "inline-flex", 
+                alignItems: "center", 
+                gap: "8px",
+                backgroundColor: "rgba(255, 255, 255, 0.04)",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+                color: "#FFFFFF"
+              }}
+            >
+              <Eye size={14} />
+              <span>Technical Specs</span>
+            </button>
+          </div>
+
+          <div style={{ position: "absolute", bottom: "40px", left: "10%" }} className="cursor-invitation">
+            <div className="cursor-invitation-dot" />
+            <span>Scroll to Materialize Links</span>
+            <ChevronDown size={14} style={{ marginLeft: "4px" }} />
           </div>
         </section>
 
-        {/* Section 1: Handoff closeup */}
-        <section className="story-section" style={{ height: "100vh", display: "flex", alignItems: "center" }}>
+        {/* ACT 2: DISCOVERY — Interactive Pulse */}
+        <section className="story-section" style={{ height: "100vh" }}>
           <div className="story-card">
-            <span className="mono" style={{ fontSize: "10.5px", textTransform: "uppercase", color: "var(--accent)", fontWeight: "600", display: "block", marginBottom: "8px" }}>
-              ATOM 1 · THE HANDOFF
+            <span className="mono" style={{ fontSize: "10px", textTransform: "uppercase", color: "#5E8CFC", fontWeight: "600", display: "block", marginBottom: "8px", letterSpacing: "0.06em" }}>
+              ACT 2 · THE PULSE
             </span>
-            <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "12px" }}>Custody in Perpetual Motion</h2>
-            <p style={{ color: "var(--text-2)", fontSize: "13px", lineHeight: "1.6", marginBottom: "0" }}>
-              An organization's assets aren't static rows. They flow continuously from person to person. 
-              Watch the highlighted node transition its tether from Priya to Raj as the transaction logs.
+            <h2>Responsive Proximity</h2>
+            <p>
+              Assets aren't spreadsheet rows. Drag, throw, or hover. Move your cursor near any node to witness the proximity fields illuminate live connections.
+            </p>
+            <div className="cursor-invitation">
+              <MousePointer size={12} />
+              <span>Hover nodes to test electromagnetic aura</span>
+            </div>
+          </div>
+        </section>
+
+        {/* ACT 3: PERPETUAL MOTION — The Handoff */}
+        <section className="story-section" style={{ height: "100vh" }}>
+          <div className="story-card">
+            <span className="mono" style={{ fontSize: "10px", textTransform: "uppercase", color: "#5E8CFC", fontWeight: "600", display: "block", marginBottom: "8px", letterSpacing: "0.06em" }}>
+              ACT 3 · PERPETUAL MOTION
+            </span>
+            <h2>Chain of Custody Flows</h2>
+            <p>
+              Watch tethers shift dynamically. As assets transfer from person to person, links route themselves in real-time to preserve compliance ledgers.
             </p>
             
-            {/* Interactive Widget */}
             <div className="mini-widget" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span className="table-avatar">PS</span>
+                <span className="mock-avatar-circle">PS</span>
                 <span style={{ fontWeight: "500" }}>Priya</span>
               </div>
-              <div className="mono" style={{ color: "var(--accent)", fontSize: "11px", animation: "blink 1.5s infinite" }}>
+              <div className="mono" style={{ color: "#5E8CFC", fontSize: "11px", animation: "blink 1.5s infinite", letterSpacing: "0.04em" }}>
                 ── AF-0001 ──▶
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span className="table-avatar">RP</span>
+                <span className="mock-avatar-circle">RP</span>
                 <span style={{ fontWeight: "500" }}>Raj</span>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Section 2: Overdue alert */}
-        <section className="story-section" style={{ height: "100vh", display: "flex", alignItems: "center" }}>
+        {/* ACT 4: THE TENSION — Overdue Alert */}
+        <section className="story-section" style={{ height: "100vh" }}>
           <div className="story-card">
-            <span className="mono" style={{ fontSize: "10.5px", textTransform: "uppercase", color: "var(--alert)", fontWeight: "600", display: "block", marginBottom: "8px" }}>
-              ATOM 2 · THE TENSION
+            <span className="mono" style={{ fontSize: "10px", textTransform: "uppercase", color: "#EF4444", fontWeight: "600", display: "block", marginBottom: "8px", letterSpacing: "0.06em" }}>
+              ACT 4 · THE TENSION
             </span>
-            <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "12px" }}>Overdue Warning States</h2>
-            <p style={{ color: "var(--text-2)", fontSize: "13px", lineHeight: "1.6", marginBottom: "0" }}>
-              When an asset exceeds its approved custody duration, the physical springs in the constellation pull tight.
-              The tether pulses in alert red to visually flag administrative neglect.
+            <h2>Overdue Tension States</h2>
+            <p>
+              When checkout duration exceeds parameters, spring vectors contract, pulling the visual node tight and pulsing in high-visibility warning crimson.
             </p>
 
-            {/* Interactive Widget */}
-            <div className="mini-widget" style={{ borderColor: "var(--alert)", backgroundColor: "var(--alert-soft)", color: "var(--alert)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div className="mini-widget" style={{ borderColor: "rgba(239, 68, 68, 0.3)", backgroundColor: "rgba(239, 68, 68, 0.04)", color: "#EF4444", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span className="status-dot alert" />
+                <span className="brand-pill-dot" style={{ backgroundColor: "#EF4444", boxShadow: "0 0 6px #EF4444" }} />
                 <span style={{ fontWeight: "600" }}>AF-0008 Komodo Camera</span>
               </div>
-              <span className="mono" style={{ fontWeight: "600" }}>OVERDUE (3.2d)</span>
+              <span className="mono" style={{ fontWeight: "700" }}>OVERDUE</span>
             </div>
           </div>
         </section>
 
-        {/* Section 3: Snapping threads */}
-        <section className="story-section" style={{ height: "100vh", display: "flex", alignItems: "center" }}>
+        {/* ACT 5: GOVERNANCE SNAPS — Lost & Rejection */}
+        <section className="story-section" style={{ height: "100vh" }}>
           <div className="story-card">
-            <span className="mono" style={{ fontSize: "10.5px", textTransform: "uppercase", color: "var(--text-3)", fontWeight: "600", display: "block", marginBottom: "8px" }}>
-              ATOM 3 · THE SNAP
+            <span className="mono" style={{ fontSize: "10px", textTransform: "uppercase", color: "#EF4444", fontWeight: "600", display: "block", marginBottom: "8px", letterSpacing: "0.06em" }}>
+              ACT 5 · GOVERNANCE
             </span>
-            <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "12px" }}>Unlinked or Lost Assets</h2>
-            <p style={{ color: "var(--text-2)", fontSize: "13px", lineHeight: "1.6", marginBottom: "0" }}>
-              If custody is severed or an item is declared lost, the node snaps away from its human anchors, 
-              drifting slowly to the periphery of the canvas until a new search event re-establishes link lock.
+            <h2>Collision Prevention</h2>
+            <p>
+              Two claims on the same asset are physically rejected. Electromagnetic repulsion fields push colliding nodes apart, instantly blocking the collision.
             </p>
 
-            {/* Interactive Widget */}
-            <div className="mini-widget" style={{ display: "flex", alignItems: "center", gap: "10px", color: "var(--text-3)" }}>
-              <span style={{ fontSize: "11px", padding: "2px 6px", border: "1px dashed var(--hairline)" }}>Severed Link</span>
-              <span className="mono">AF-0005 ↛ [No Custodian]</span>
+            <div className="mini-widget" style={{ borderLeft: "3px solid #EF4444", paddingLeft: "14px" }}>
+              <div style={{ fontWeight: "600", color: "#FFFFFF", marginBottom: "4px" }}>Allocation Refused</div>
+              <p style={{ fontSize: "11px", color: "rgba(255, 255, 255, 0.5)", margin: 0 }}>Tesla Model 3 is already locked in custody by Priya Sharma.</p>
             </div>
           </div>
         </section>
 
-        {/* Section 4: Allocation refusals */}
-        <section className="story-section" style={{ height: "100vh", display: "flex", alignItems: "center" }}>
-          <div className="story-card">
-            <span className="mono" style={{ fontSize: "10.5px", textTransform: "uppercase", color: "var(--accent)", fontWeight: "600", display: "block", marginBottom: "8px" }}>
-              ATOM 4 · GOVERNANCE
-            </span>
-            <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "12px" }}>Allocation Conflict Rejection</h2>
-            <p style={{ color: "var(--text-2)", fontSize: "13px", lineHeight: "1.6", marginBottom: "0" }}>
-              The system prevents double-booking and active custody clashes by establishing physical repulsion fields.
-              Two users trying to claim the same asset are pushed apart, visually blocking the collision.
-            </p>
+        {/* ACT 6: PRODUCT BRIDGE — Real-time Stats and Preview */}
+        <section className="preview-bridge-section" style={{ zIndex: 10, position: "relative" }}>
+          <div className="preview-bridge-card">
+            <div className="preview-bridge-header">
+              <span className="mock-dot" style={{ backgroundColor: "#FF5F56", width: "8px", height: "8px" }} />
+              <span className="mock-dot" style={{ backgroundColor: "#FFBD2E", width: "8px", height: "8px" }} />
+              <span className="mock-dot" style={{ backgroundColor: "#27C93F", width: "8px", height: "8px" }} />
+              <span style={{ fontSize: "10px", color: "rgba(255, 255, 255, 0.3)", fontFamily: "monospace", marginLeft: "12px" }}>live-operation-bridge // assetflow-triage</span>
+            </div>
+            
+            <div className="preview-bridge-body">
+              <h2 className="preview-bridge-title">Precision Triage Operations</h2>
+              
+              <div className="grid-3">
+                <div className="mock-card" style={{ height: "72px", padding: "12px", border: "1px solid rgba(255, 255, 255, 0.08)", background: "rgba(255,255,255,0.01)" }}>
+                  <span style={{ fontSize: "8px", color: "rgba(255, 255, 255, 0.4)", fontWeight: "600", textTransform: "uppercase" }}>Tethered Inventory</span>
+                  <span style={{ fontSize: "16px", fontWeight: "600", color: "#FFFFFF", fontFamily: "monospace" }}>{assets.length} Active</span>
+                </div>
+                <div className="mock-card" style={{ height: "72px", padding: "12px", border: "1px solid rgba(255, 255, 255, 0.08)", background: "rgba(255,255,255,0.01)" }}>
+                  <span style={{ fontSize: "8px", color: "rgba(255, 255, 255, 0.4)", fontWeight: "600", textTransform: "uppercase" }}>Pending Handoffs</span>
+                  <span style={{ fontSize: "16px", fontWeight: "600", color: "#5E8CFC", fontFamily: "monospace" }}>{handoffs.filter(h => h.status === "requested").length} Requests</span>
+                </div>
+                <div className="mock-card" style={{ height: "72px", padding: "12px", border: "1px solid rgba(255, 255, 255, 0.08)", background: "rgba(255,255,255,0.01)" }}>
+                  <span style={{ fontSize: "8px", color: "rgba(255, 255, 255, 0.4)", fontWeight: "600", textTransform: "uppercase" }}>System Load</span>
+                  <span style={{ fontSize: "16px", fontWeight: "600", color: "#27C93F", fontFamily: "monospace" }}>99.8% Online</span>
+                </div>
+              </div>
 
-            {/* Interactive Widget */}
-            <div className="mini-widget" style={{ borderLeft: "3px solid var(--alert)" }}>
-              <div style={{ fontWeight: "600", color: "var(--ink)", marginBottom: "4px" }}>Allocation Refused</div>
-              <p style={{ fontSize: "11.5px", color: "var(--text-2)", margin: 0 }}>Tesla Model 3 is already held in custody by Priya Sharma.</p>
+              <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: "16px" }}>
+                <div className="mock-table" style={{ border: "1px solid rgba(255, 255, 255, 0.08)", background: "rgba(255,255,255,0.01)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255, 255, 255, 0.06)", paddingBottom: "6px", marginBottom: "10px", fontSize: "8px", color: "rgba(255, 255, 255, 0.4)", fontWeight: "700", textTransform: "uppercase" }}>
+                    <span>Active Handoff ID</span>
+                    <span>Status</span>
+                  </div>
+                  {handoffs.slice(-2).map((h, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                      <span className="mock-badge-tag">AF-{h.assetTag}</span>
+                      <span style={{ fontSize: "11px", color: "rgba(255, 255, 255, 0.6)", textTransform: "uppercase" }}>{h.status}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mock-table" style={{ border: "1px solid rgba(255, 255, 255, 0.08)", background: "rgba(255,255,255,0.01)", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                  <span style={{ fontSize: "8px", color: "rgba(255, 255, 255, 0.4)", fontWeight: "700", textTransform: "uppercase" }}>Telemetry Density</span>
+                  <div className="mock-svg-chart">
+                    {[25, 45, 60, 30, 80, 95, 70].map((h, idx) => (
+                      <div 
+                        key={idx} 
+                        className="mock-chart-bar" 
+                        style={{ 
+                          height: `${h}%`,
+                          backgroundColor: idx === 5 ? "#EF4444" : "#2C5FE0"
+                        }} 
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -425,20 +422,20 @@ export const Landing = ({ onEnterApp }) => {
         <footer className="landing-footer">
           <div className="landing-footer-top">
             <div className="landing-footer-brand">
-              <h4>AssetFlow</h4>
-              <p style={{ color: "#8E8E93" }}>Secure ledger chain of custody operations.</p>
+              <h4>AssetFlow Operations</h4>
+              <p style={{ color: "rgba(255, 255, 255, 0.4)" }}>Automated spring-mass chain of custody verification ledger.</p>
             </div>
             <div className="landing-footer-compliance">
               <div className="compliance-badge">SAIF-COMPLIANT</div>
-              <div className="compliance-badge">LEDGER-LOCKED v1.0</div>
-              <div className="compliance-badge">SPRING-MASS SIMULATOR</div>
+              <div className="compliance-badge">LEDGER-LOCKED v1.5</div>
+              <div className="compliance-badge">MASS-ATTRACTION ENGINE</div>
             </div>
           </div>
           <div className="landing-footer-bottom">
-            <span>© 2026 AssetFlow Operations. All rights reserved.</span>
+            <span>© 2026 AssetFlow Corp. Compliance operational tethers certified.</span>
             <div style={{ display: "flex", gap: "24px" }}>
-              <span className="landing-nav-link" onClick={() => scrollToSection(0)}>Back to Top</span>
-              <span className="landing-nav-link" onClick={onEnterApp} style={{ color: "#FFF", fontWeight: "600" }}>Enter App →</span>
+              <span className="landing-nav-link" onClick={() => scrollToSection(0)}>Top</span>
+              <span className="landing-nav-link" onClick={onEnterApp} style={{ color: "#FFF", fontWeight: "600" }}>Launch Dashboard →</span>
             </div>
           </div>
         </footer>
@@ -447,32 +444,32 @@ export const Landing = ({ onEnterApp }) => {
 
       {/* Spec & Blueprint Info Modal */}
       {showBlueprintModal && (
-        <div className="modal-overlay" onClick={() => setShowBlueprintModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "540px", padding: "32px" }}>
-            <h3 style={{ fontSize: "18px", fontWeight: "600", color: "var(--ink)", marginBottom: "12px" }}>AssetFlow UI Blueprint Specs</h3>
+        <div className="modal-overlay" onClick={() => setShowBlueprintModal(false)} style={{ zIndex: 1200 }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "540px", padding: "32px", backgroundColor: "#18181B", borderColor: "rgba(255, 255, 255, 0.1)" }}>
+            <h3 style={{ fontSize: "20px", fontWeight: "600", color: "#FFFFFF", marginBottom: "16px", fontFamily: "'Fraunces', serif" }}>AssetFlow Specification Blueprint</h3>
             
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px", maxHeight: "360px", overflowY: "auto", fontSize: "13px", color: "var(--text-2)" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px", maxHeight: "360px", overflowY: "auto", fontSize: "13px", color: "rgba(255, 255, 255, 0.7)" }}>
               <div>
-                <strong style={{ color: "var(--ink)" }}>1. Physics Simulation Engine</strong>
+                <strong style={{ color: "#FFFFFF" }}>1. Physics Simulation Engine</strong>
                 <p>Calculates dynamic repulsion forces using Coulomb formulas (`minDist = 220px`) and spring attraction tethers along active custody links.</p>
               </div>
               <div>
-                <strong style={{ color: "var(--ink)" }}>2. Strict Color Neutrality (95%)</strong>
-                <p>Restricted to cool neutral tones (`#FBFBFA` canvas, `#FFFFFF` surface). Accent alerts are reserved for overdue or lost items.</p>
+                <strong style={{ color: "#FFFFFF" }}>2. Staggered Materialization</strong>
+                <p>Nodes and connection vectors materialize sequentially during initial loading stages to reduce visual weight.</p>
               </div>
               <div>
-                <strong style={{ color: "var(--ink)" }}>3. Layout & Density Guidelines</strong>
-                <p>Table rows locked to exactly `40px` height with right-aligned tabular dates. Overflow strings are clipped via ellipsis to prevent row wrapping.</p>
+                <strong style={{ color: "#FFFFFF" }}>3. Magnetic Proximity</strong>
+                <p>Interactive cursor proximity mapping increases electromagnetic node glow and activates attraction nodes upon hover coordinates.</p>
               </div>
               <div>
-                <strong style={{ color: "var(--ink)" }}>4. Consequence Gate Governance</strong>
+                <strong style={{ color: "#FFFFFF" }}>4. Consequence Gate Governance</strong>
                 <p>Ensures that critical steps require authentication and double validation before ledger entry.</p>
               </div>
             </div>
             
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "24px" }}>
-              <button className="btn btn-primary" onClick={() => setShowBlueprintModal(false)}>
-                <span>Close Blueprint</span>
+              <button className="btn btn-primary" onClick={() => setShowBlueprintModal(false)} style={{ backgroundColor: "#2C5FE0" }}>
+                <span>Close Spec</span>
               </button>
             </div>
           </div>
@@ -481,10 +478,10 @@ export const Landing = ({ onEnterApp }) => {
 
       {/* Sleek Command Palette ⌘K Overlay Modal */}
       {showCommandPalette && (
-        <div className="modal-overlay" onClick={() => setShowCommandPalette(false)} style={{ backgroundColor: "rgba(24, 24, 27, 0.3)" }}>
-          <div className="cmd-palette-wrapper" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay" onClick={() => setShowCommandPalette(false)} style={{ backgroundColor: "rgba(10, 10, 11, 0.8)", zIndex: 1200 }}>
+          <div className="cmd-palette-wrapper" onClick={(e) => e.stopPropagation()} style={{ backgroundColor: "rgba(24, 24, 27, 0.95)", borderColor: "rgba(255, 255, 255, 0.1)" }}>
             <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-              <Search size={16} style={{ position: "absolute", left: "20px", color: "var(--text-3)" }} />
+              <Search size={16} style={{ position: "absolute", left: "20px", color: "rgba(255, 255, 255, 0.4)" }} />
               <input 
                 type="text"
                 className="cmd-palette-input"
@@ -492,7 +489,7 @@ export const Landing = ({ onEnterApp }) => {
                 value={commandQuery}
                 onChange={(e) => setCommandQuery(e.target.value)}
                 autoFocus
-                style={{ paddingLeft: "48px" }}
+                style={{ paddingLeft: "48px", borderBottom: "1px solid rgba(255, 255, 255, 0.08)", color: "#FFFFFF" }}
               />
             </div>
             <div className="cmd-palette-results">
@@ -505,19 +502,20 @@ export const Landing = ({ onEnterApp }) => {
                       item.action();
                       setShowCommandPalette(false);
                     }}
+                    style={{ color: "rgba(255, 255, 255, 0.7)" }}
                   >
                     <span>{item.label}</span>
-                    <kbd className="cmd-palette-shortcut">{item.shortcut}</kbd>
+                    <kbd className="cmd-palette-shortcut" style={{ backgroundColor: "rgba(255, 255, 255, 0.05)", borderColor: "rgba(255, 255, 255, 0.1)", color: "rgba(255, 255, 255, 0.4)" }}>{item.shortcut}</kbd>
                   </div>
                 ))
               ) : (
-                <div style={{ padding: "16px", textAlign: "center", color: "var(--text-3)", fontSize: "13px" }}>
+                <div style={{ padding: "16px", textAlign: "center", color: "rgba(255, 255, 255, 0.4)", fontSize: "13px" }}>
                   No matching command results found.
                 </div>
               )}
             </div>
-            <div style={{ height: "32px", borderTop: "1px solid var(--hairline-2)", backgroundColor: "var(--fill)", display: "flex", alignItems: "center", justifyContent: "flex-end", padding: "0 16px", fontSize: "10px", color: "var(--text-3)" }}>
-              <span>Press <kbd className="cmd-palette-shortcut" style={{ fontSize: "8px", padding: "1px 4px" }}>Esc</kbd> to close</span>
+            <div style={{ height: "32px", borderTop: "1px solid rgba(255, 255, 255, 0.08)", backgroundColor: "rgba(0, 0, 0, 0.3)", display: "flex", alignItems: "center", justifyContent: "flex-end", padding: "0 16px", fontSize: "10px", color: "rgba(255, 255, 255, 0.4)" }}>
+              <span>Press <kbd className="cmd-palette-shortcut" style={{ fontSize: "8px", padding: "1px 4px", backgroundColor: "rgba(255, 255, 255, 0.05)", borderColor: "rgba(255, 255, 255, 0.1)" }}>Esc</kbd> to close</span>
             </div>
           </div>
         </div>
