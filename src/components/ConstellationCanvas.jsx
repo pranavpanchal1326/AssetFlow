@@ -75,15 +75,15 @@ export const ConstellationCanvas = ({ activeStep = 0, prefersReducedMotion = fal
       const cx = canvas.width / 2;
       const cy = canvas.height / 2;
       nodes.forEach(node => {
-        node.x = cx + (Math.random() - 0.5) * 450;
-        node.y = cy + (Math.random() - 0.5) * 450;
+        node.x = cx + (Math.random() - 0.5) * 800; // Wider initial spread
+        node.y = cy + (Math.random() - 0.5) * 800;
       });
 
       links = [
-        { source: "Priya", target: "AF-0001", type: "normal", length: 130, label: "" },
-        { source: "Raj", target: "AF-0002", type: "normal", length: 130, label: "" },
-        { source: "Vikram", target: "AF-0004", type: "normal", length: 150, label: "" },
-        { source: "Elena", target: "AF-0008", type: "normal", length: 130, label: "" }
+        { source: "Priya", target: "AF-0001", type: "normal", length: 220, label: "" },
+        { source: "Raj", target: "AF-0002", type: "normal", length: 220, label: "" },
+        { source: "Vikram", target: "AF-0004", type: "normal", length: 240, label: "" },
+        { source: "Elena", target: "AF-0008", type: "normal", length: 220, label: "" }
       ];
     };
 
@@ -437,7 +437,7 @@ export const ConstellationCanvas = ({ activeStep = 0, prefersReducedMotion = fal
 
     // Helper force simulation math
     const applyForceSimulation = (cx, cy, repelStrength = 1.0, attractionStrength = 0.05, targetLinkLen = 120) => {
-      // 1. Repulsion between all nodes
+      // 1. Repulsion between all nodes (Increased distance and strength to prevent center crowding)
       for (let i = 0; i < nodes.length; i++) {
         const n1 = nodes[i];
         for (let j = i + 1; j < nodes.length; j++) {
@@ -445,10 +445,10 @@ export const ConstellationCanvas = ({ activeStep = 0, prefersReducedMotion = fal
           const dx = n2.x - n1.x;
           const dy = n2.y - n1.y;
           const dist = Math.hypot(dx, dy) || 1;
-          const minDist = n1.radius + n2.radius + 60;
+          const minDist = 220;
           
           if (dist < minDist) {
-            const force = (minDist - dist) * 0.04 * repelStrength;
+            const force = (minDist - dist) * 0.08 * repelStrength;
             n1.vx -= (dx / dist) * force;
             n1.vy -= (dy / dist) * force;
             n2.vx += (dx / dist) * force;
@@ -497,17 +497,17 @@ export const ConstellationCanvas = ({ activeStep = 0, prefersReducedMotion = fal
         });
       }
 
-      // 4. Center gravity to keep constellation together
+      // 4. Center gravity to keep constellation together (Softer pull to let nodes expand outward)
       nodes.forEach(node => {
         const dx = cx - node.x;
         const dy = cy - node.y;
-        node.vx += dx * 0.003;
-        node.vy += dy * 0.003;
+        node.vx += dx * 0.0006;
+        node.vy += dy * 0.0006;
 
         node.x += node.vx;
         node.y += node.vy;
-        node.vx *= 0.82;
-        node.vy *= 0.82;
+        node.vx *= 0.85;
+        node.vy *= 0.85;
       });
     };
 

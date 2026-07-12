@@ -39,11 +39,25 @@ export const Landing = ({ onEnterApp }) => {
         
         {/* Section 0: Title & Entry */}
         <section className="story-section" style={{ height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textShadow: "0 2px 8px rgba(255, 255, 255, 0.4)" }}>
-          <div className="landing-headline-group" style={{ pointerEvents: "auto", textAlign: "center" }}>
-            <h1 style={{ fontSize: "40px", fontWeight: "600", color: "var(--ink)", marginBottom: "16px" }}>
+          <div 
+            className="landing-headline-group" 
+            style={{ 
+              pointerEvents: "auto", 
+              textAlign: "center",
+              maxWidth: "540px",
+              padding: "40px 48px",
+              backgroundColor: "rgba(255, 255, 255, 0.85)",
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
+              border: "1px solid var(--hairline)",
+              borderRadius: "8px",
+              boxShadow: "var(--shadow-medium)"
+            }}
+          >
+            <h1 style={{ fontSize: "36px", fontWeight: "600", color: "var(--ink)", marginBottom: "16px", letterSpacing: "-0.015em" }}>
               Every object has a person.
             </h1>
-            <p style={{ fontSize: "16px", color: "var(--text-2)", marginBottom: "32px", fontStyle: "italic" }}>
+            <p style={{ fontSize: "15px", color: "var(--text-2)", marginBottom: "32px", fontStyle: "italic", lineHeight: "1.5" }}>
               AssetFlow just never lets you forget whose hands it's in.
             </p>
             <button 
