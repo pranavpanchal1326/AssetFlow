@@ -1,0 +1,222 @@
+[
+  {
+    "id": 1,
+    "user_id": 5,
+    "type": "asset_assigned",
+    "title": "MacBook Pro 14\" M3 Allocated to You",
+    "body": "Asset AF-0014 (MacBook Pro 14\" M3) has been allocated to you by Deepak Nair. Please collect it from Operations & Facilities, Pune HQ Floor 2.",
+    "entity_ref": "asset:14",
+    "is_read": true,
+    "created_at": "2025-06-12T10:01:00.000Z"
+  },
+  {
+    "id": 2,
+    "user_id": 9,
+    "type": "asset_assigned",
+    "title": "Dell UltraSharp Monitor Allocated to You",
+    "body": "Asset AF-0003 (Dell UltraSharp U2723QE 27\" Monitor) has been allocated to you by Deepak Nair.",
+    "entity_ref": "asset:3",
+    "is_read": true,
+    "created_at": "2025-06-10T11:01:00.000Z"
+  },
+  {
+    "id": 3,
+    "user_id": 9,
+    "type": "maintenance_approved",
+    "title": "Maintenance Request Approved — AF-0003",
+    "body": "Your maintenance request for Dell UltraSharp Monitor (AF-0003) has been approved by Deepak Nair. The asset has been placed Under Maintenance.",
+    "entity_ref": "maintenance:1",
+    "is_read": true,
+    "created_at": "2025-09-16T10:00:00.000Z"
+  },
+  {
+    "id": 4,
+    "user_id": 15,
+    "type": "asset_assigned",
+    "title": "MacBook Pro 14\" M3 Allocated to You",
+    "body": "Asset AF-0014 (MacBook Pro 14\" M3) has been allocated to you by Deepak Nair. Expected return: 31 Mar 2026.",
+    "entity_ref": "asset:14",
+    "is_read": true,
+    "created_at": "2026-01-05T09:31:00.000Z"
+  },
+  {
+    "id": 5,
+    "user_id": 15,
+    "type": "maintenance_approved",
+    "title": "Maintenance Approved — MacBook Pro Keyboard",
+    "body": "Your maintenance request for MacBook Pro 14\" M3 (AF-0014) has been approved. Technician will be assigned shortly.",
+    "entity_ref": "maintenance:2",
+    "is_read": true,
+    "created_at": "2026-03-16T09:00:00.000Z"
+  },
+  {
+    "id": 6,
+    "user_id": 15,
+    "type": "asset_assigned",
+    "title": "MacBook Pro 14\" M3 Re-allocated to You",
+    "body": "Asset AF-0014 (MacBook Pro 14\" M3) has been re-allocated to you after maintenance completion. Keyboard replaced. Expected return: 01 Apr 2027.",
+    "entity_ref": "asset:14",
+    "is_read": true,
+    "created_at": "2026-04-01T09:01:00.000Z"
+  },
+  {
+    "id": 7,
+    "user_id": 4,
+    "type": "booking_confirmed",
+    "title": "Booking Confirmed — Agile Den",
+    "body": "Your booking for Conference Room — Agile Den (AF-0026) on 12 Jul 2026, 10:00–11:00 has been confirmed.",
+    "entity_ref": "booking:5",
+    "is_read": true,
+    "created_at": "2026-07-10T14:00:00.000Z"
+  },
+  {
+    "id": 8,
+    "user_id": 9,
+    "type": "booking_cancelled",
+    "title": "Booking Cancelled — Agile Den",
+    "body": "Your booking for Conference Room — Agile Den (AF-0026) on 25 Jun 2026, 14:00–15:30 has been cancelled as per your request.",
+    "entity_ref": "booking:3",
+    "is_read": true,
+    "created_at": "2026-06-23T11:00:00.000Z"
+  },
+  {
+    "id": 9,
+    "user_id": 12,
+    "type": "audit_assigned",
+    "title": "Audit Assignment — Q2 2026 Mumbai Branch",
+    "body": "You have been assigned as an auditor for the Q2 2026 — Mumbai Branch Audit cycle (01 Jun – 30 Jun 2026). Please begin verifying assigned assets.",
+    "entity_ref": "audit:2",
+    "is_read": true,
+    "created_at": "2026-06-01T09:05:00.000Z"
+  },
+  {
+    "id": 10,
+    "user_id": 1,
+    "type": "audit_discrepancy",
+    "title": "Audit Discrepancy — Cisco Switch AF-0025 Missing",
+    "body": "During Q2 2026 Mumbai Branch Audit, asset AF-0025 (Cisco Catalyst 2960-X Switch) was marked as Missing by Suman Das. Location checked: Server Rack B7.",
+    "entity_ref": "audit_item:15",
+    "is_read": false,
+    "created_at": "2026-06-05T14:31:00.000Z"
+  },
+  {
+    "id": 11,
+    "user_id": 1,
+    "type": "audit_discrepancy",
+    "title": "Audit Discrepancy — Monitor AF-0030 Damaged",
+    "body": "During Q2 2026 Mumbai Branch Audit, asset AF-0030 (Dell UltraSharp U2422H 24\" Monitor) was marked as Damaged by Nandini Krishnan. Dead pixel cluster in lower-right quadrant.",
+    "entity_ref": "audit_item:18",
+    "is_read": false,
+    "created_at": "2026-06-04T10:46:00.000Z"
+  },
+  {
+    "id": 12,
+    "user_id": 11,
+    "type": "overdue_return",
+    "title": "Overdue Return Alert — iPad Pro AF-0019",
+    "body": "Asset AF-0019 (iPad Pro 12.9\") was due for return on 01 Jul 2026 and has not been returned. Please arrange return or contact your manager for an extension.",
+    "entity_ref": "allocation:8",
+    "is_read": false,
+    "created_at": "2026-07-02T06:00:00.000Z"
+  },
+  {
+    "id": 13,
+    "user_id": 18,
+    "type": "overdue_return",
+    "title": "Overdue Return Alert — Dell Latitude AF-0017",
+    "body": "Asset AF-0017 (Dell Latitude 5540) was due for return on 10 Jul 2026 and has not been returned. Please arrange return or request an extension.",
+    "entity_ref": "allocation:31",
+    "is_read": false,
+    "created_at": "2026-07-11T06:00:00.000Z"
+  },
+  {
+    "id": 14,
+    "user_id": 7,
+    "type": "overdue_return",
+    "title": "Overdue Asset — AF-0019 held by Farhan Sheikh",
+    "body": "iPad Pro 12.9\" (AF-0019) allocated to Farhan Sheikh was due on 01 Jul 2026 and remains unreturned. Follow up required.",
+    "entity_ref": "allocation:8",
+    "is_read": false,
+    "created_at": "2026-07-02T06:01:00.000Z"
+  },
+  {
+    "id": 15,
+    "user_id": 7,
+    "type": "overdue_return",
+    "title": "Overdue Asset — AF-0017 held by Tanvi Goswami",
+    "body": "Dell Latitude 5540 (AF-0017) allocated to Tanvi Goswami was due on 10 Jul 2026 and remains unreturned.",
+    "entity_ref": "allocation:31",
+    "is_read": false,
+    "created_at": "2026-07-11T06:01:00.000Z"
+  },
+  {
+    "id": 16,
+    "user_id": 9,
+    "type": "transfer_approved",
+    "title": "Transfer Approved — MacBook Air AF-0013",
+    "body": "Your transfer request for MacBook Air M2 (AF-0013), previously held by Amit Khanna, has been approved by Deepak Nair. The asset is now allocated to you.",
+    "entity_ref": "transfer:1",
+    "is_read": true,
+    "created_at": "2026-05-20T14:31:00.000Z"
+  },
+  {
+    "id": 17,
+    "user_id": 14,
+    "type": "transfer_approved",
+    "title": "Asset Transferred — MacBook Air AF-0013",
+    "body": "MacBook Air M2 (AF-0013) has been transferred from you to Rajesh Iyer. Approved by Deepak Nair.",
+    "entity_ref": "transfer:1",
+    "is_read": true,
+    "created_at": "2026-05-20T14:32:00.000Z"
+  },
+  {
+    "id": 18,
+    "user_id": 12,
+    "type": "transfer_rejected",
+    "title": "Transfer Request Rejected — Monitor AF-0004",
+    "body": "Your transfer request for Dell UltraSharp Monitor (AF-0004), currently held by Ananya Reddy, has been rejected by Deepak Nair. Reason: holder requires dual-screen setup for CAD work.",
+    "entity_ref": "transfer:2",
+    "is_read": true,
+    "created_at": "2026-06-10T16:01:00.000Z"
+  },
+  {
+    "id": 19,
+    "user_id": 3,
+    "type": "booking_reminder",
+    "title": "Upcoming Booking — Agile Den in 30 minutes",
+    "body": "Reminder: Your booking for Conference Room — Agile Den (AF-0026) starts at 09:00 today (12 Jul 2026).",
+    "entity_ref": "booking:4",
+    "is_read": false,
+    "created_at": "2026-07-12T08:30:00.000Z"
+  },
+  {
+    "id": 20,
+    "user_id": 17,
+    "type": "maintenance_rejected",
+    "title": "Maintenance Request Rejected — Biometric AF-0031",
+    "body": "Your maintenance request for ZKTeco Biometric Device (AF-0031) has been rejected by Deepak Nair. Notes: Fingerprint sensitivity is within manufacturer specifications. Staff should re-enroll fingerprints if recognition rate drops.",
+    "entity_ref": "maintenance:6",
+    "is_read": true,
+    "created_at": "2026-06-22T10:00:00.000Z"
+  },
+  {
+    "id": 21,
+    "user_id": 6,
+    "type": "transfer_requested",
+    "title": "Transfer Request — Samsung Tab AF-0018",
+    "body": "Lakshmi Menon has requested transfer of Samsung Galaxy Tab S9 FE (AF-0018) currently allocated to you. Review and approve/reject via Asset Allocation.",
+    "entity_ref": "transfer:3",
+    "is_read": false,
+    "created_at": "2026-07-08T10:16:00.000Z"
+  },
+  {
+    "id": 22,
+    "user_id": 8,
+    "type": "booking_confirmed",
+    "title": "Booking Confirmed — Bay View Meeting Room",
+    "body": "Your booking for Meeting Room — Bay View (AF-0028) on 13 Jul 2026, 11:00–12:00 has been confirmed. Purpose: Remote interview.",
+    "entity_ref": "booking:7",
+    "is_read": false,
+    "created_at": "2026-07-11T16:00:00.000Z"
+  }
+]
