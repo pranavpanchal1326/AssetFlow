@@ -4,7 +4,7 @@ const db = require('../db');
 const { requireAuth, requireRole } = require('../middleware/auth');
 const { logActivity, notify } = require('../services/activity');
 const { transitionAsset, TransitionError } = require('../services/lifecycle');
-const { activeAllocation, holderInfo } = require('./allocations');
+const { activeAllocation } = require('./allocations');
 
 const router = express.Router();
 

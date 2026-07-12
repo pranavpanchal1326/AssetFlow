@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from "react";
 import { AppContext } from "../context/AppContext";
 import { StampedTag } from "../components/StampedTag";
 import { LifecycleRail } from "../components/LifecycleRail";
-import { Search, Filter, QrCode, X, Plus, Calendar, Wrench, Download } from "lucide-react";
+import { Search, QrCode, X, Plus, Wrench, Download } from "lucide-react";
 
 export const Objects = ({ globalSearchQuery = "" }) => {
   const {

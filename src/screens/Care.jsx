@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { AppContext } from "../context/AppContext";
 import { StampedTag } from "../components/StampedTag";
-import { Wrench, Plus, ArrowRight, Check, X, AlertCircle } from "lucide-react";
+import { Plus, ArrowRight, Check, X } from "lucide-react";
 
 export const Care = () => {
   const {
@@ -22,7 +22,6 @@ export const Care = () => {
   const [issuePhoto, setIssuePhoto] = useState(null);
   const [submittingTicket, setSubmittingTicket] = useState(false);
 
-  const isManagerOrAdmin = ["Admin", "Manager"].includes(currentUser?.role);
   // Only asset_manager may progress a maintenance ticket through the workflow server-side.
   const canProgressTickets = currentUser?.roleRaw === "asset_manager";
 
@@ -159,6 +158,10 @@ export const Care = () => {
                                 Asset manager action
                               </span>
                             )
+                          ) : ticket.statusRaw === "rejected" ? (
+                            <span className="mono" style={{ fontSize: "10px", color: "var(--alert)", fontWeight: "600", display: "flex", alignItems: "center", gap: "2px" }}>
+                              <X size={10} /> Rejected
+                            </span>
                           ) : (
                             <span className="mono" style={{ fontSize: "10px", color: "var(--available)", fontWeight: "600", display: "flex", alignItems: "center", gap: "2px" }}>
                               <Check size={10} /> Resolved

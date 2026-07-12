@@ -24,14 +24,14 @@ async function request(path, { method = "GET", body, headers, isForm } = {}) {
       headers: finalHeaders,
       body: body == null ? undefined : isForm ? body : JSON.stringify(body),
     });
-  } catch (err) {
+  } catch {
     throw new Error("Cannot reach the AssetFlow server. Is the backend running on port 4000?");
   }
 
   let json = null;
   try {
     json = await res.json();
-  } catch (_) {
+  } catch {
     // No/invalid JSON body (e.g. CSV export) — handled by caller.
   }
 

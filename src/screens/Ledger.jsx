@@ -1,9 +1,9 @@
 import React, { useContext, useState, useEffect } from "react";
 import { AppContext } from "../context/AppContext";
-import { ListTodo, CheckCheck, Eye, Bell, ShieldAlert, ArrowLeftRight } from "lucide-react";
+import { ListTodo, CheckCheck, Eye, ShieldAlert, ArrowLeftRight } from "lucide-react";
 
 export const Ledger = () => {
-  const { ledger, markLedgerRead, currentUser } = useContext(AppContext);
+  const { ledger, markLedgerRead } = useContext(AppContext);
 
   // States
   const [filterType, setFilterType] = useState("all"); // all, handoff, system
@@ -12,6 +12,7 @@ export const Ledger = () => {
   // Mark notifications read on mount
   useEffect(() => {
     markLedgerRead();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount; markLedgerRead is recreated per render
   }, []);
 
   const filteredLedger = ledger.filter(item => {
@@ -71,7 +72,6 @@ export const Ledger = () => {
         ) : (
           filteredLedger.map((item) => {
             const isHandoff = item.type === "handoff";
-            const isSystem = item.type === "system";
             const isOverdue = item.message.toLowerCase().includes("overdue") || item.message.toLowerCase().includes("lost");
 
             return (

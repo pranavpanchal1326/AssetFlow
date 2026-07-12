@@ -173,11 +173,10 @@ export const AppFrame = ({ children, onSearchQueryChange }) => {
         {/* 56px sticky topbar */}
         <header className="topbar">
           <div className="breadcrumbs">
-            <button 
-              className="btn btn-small"
+            <button
+              className="btn btn-small mobile-menu-toggle"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               style={{ display: "none" }} /* Styled via CSS in @media for tablet/mobile */
-              className="mobile-menu-toggle"
             >
               <Menu size={16} />
             </button>

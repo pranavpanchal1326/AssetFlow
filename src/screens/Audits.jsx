@@ -34,7 +34,7 @@ export const Audits = () => {
   const activeAudit = audits.find(a => String(a.id) === String(selectedAuditId));
 
   // Handle create submit
-  const [creatingAudit, setCreatingAudit] = useState(false);
+  const [, setCreatingAudit] = useState(false); // value unused; setter drives the submit guard
   const handleCreateAudit = async (e) => {
     e.preventDefault();
     if (!auditTitle || !scopeDeptId) return;

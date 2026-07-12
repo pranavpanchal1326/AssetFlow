@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import { AppContext } from "../context/AppContext";
-import { Plus, UserPlus, GitFork, Tag, Users, AlertTriangle } from "lucide-react";
+import { Plus, GitFork, Tag, Users, AlertTriangle } from "lucide-react";
 
 export const Setup = () => {
   const {
@@ -82,8 +82,12 @@ export const Setup = () => {
     setFields([{ key: "", label: "", type: "text" }]);
   };
 
+  // Friendly labels for raw backend roles (used in the confirm modal).
+  const ROLE_LABELS = { employee: "Employee", dept_head: "Dept Head", asset_manager: "Asset Manager", admin: "Admin" };
+
   // Trigger directory promoter
   const triggerRoleChange = (emp, newRole) => {
+    if (newRole === emp.roleRaw) return; // no-op reselect
     setPromoteTarget({ emp, newRole });
     setShowRoleConfirm(true);
   };
@@ -95,7 +99,7 @@ export const Setup = () => {
     const res = await promoteEmployeeRole(emp.id, newRole, emp.dept);
     setShowRoleConfirm(false);
     setPromoteTarget(null);
-    if (res.success) pushToast(`${emp.name} is now ${newRole}.`, "success");
+    if (res.success) pushToast(`${emp.name} is now ${ROLE_LABELS[newRole] || newRole}.`, "success");
   };
 
   return (
@@ -125,7 +129,7 @@ export const Setup = () => {
               <div style={{ marginTop: "16px", padding: "12px", backgroundColor: "var(--fill)", borderRadius: "4px" }}>
                 <span className="mono" style={{ fontSize: "11px", color: "var(--text-3)" }}>privilege transformation:</span>
                 <div style={{ fontWeight: "600", fontSize: "13px", marginTop: "4px" }}>
-                  {promoteTarget.emp.role} → {promoteTarget.newRole}
+                  {ROLE_LABELS[promoteTarget.emp.roleRaw] || promoteTarget.emp.role} → {ROLE_LABELS[promoteTarget.newRole] || promoteTarget.newRole}
                 </div>
               </div>
             </div>
@@ -399,7 +403,7 @@ export const Setup = () => {
                   <td>
                     <select 
                       value={emp.dept}
-                      onChange={(e) => promoteEmployeeRole(emp.id, emp.role, e.target.value)}
+                      onChange={(e) => promoteEmployeeRole(emp.id, emp.roleRaw, e.target.value)}
                       style={{ padding: "4px 8px", fontSize: "12px", border: "1px solid var(--hairline)", borderRadius: "4px" }}
                     >
                       <option value="Unassigned">Unassigned</option>
@@ -407,23 +411,25 @@ export const Setup = () => {
                     </select>
                   </td>
                   
-                  {/* Privilege directory role dropdown - changes trigger gravity checks */}
+                  {/* Privilege directory role dropdown - operates on the raw backend
+                      role so Dept Head is assignable and never silently demoted */}
                   <td>
-                    <select 
-                      value={emp.role}
+                    <select
+                      value={emp.roleRaw}
                       onChange={(e) => triggerRoleChange(emp, e.target.value)}
-                      style={{ 
-                        padding: "4px 8px", 
-                        fontSize: "12px", 
-                        border: "1px solid var(--hairline)", 
+                      style={{
+                        padding: "4px 8px",
+                        fontSize: "12px",
+                        border: "1px solid var(--hairline)",
                         borderRadius: "4px",
-                        fontWeight: emp.role === "Admin" ? "600" : "normal",
-                        color: emp.role === "Admin" ? "var(--accent)" : "inherit"
+                        fontWeight: emp.roleRaw === "admin" ? "600" : "normal",
+                        color: emp.roleRaw === "admin" ? "var(--accent)" : "inherit"
                       }}
                     >
-                      <option value="Employee">Employee</option>
-                      <option value="Manager">Manager</option>
-                      <option value="Admin">Admin</option>
+                      <option value="employee">Employee</option>
+                      <option value="dept_head">Dept Head</option>
+                      <option value="asset_manager">Asset Manager</option>
+                      <option value="admin">Admin</option>
                     </select>
                   </td>
                 </tr>

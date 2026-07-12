@@ -43,6 +43,8 @@ function initials(name = "") {
   return name.split(" ").map((w) => w[0]).filter(Boolean).join("").toUpperCase().slice(0, 2) || "AF";
 }
 
+const findAssetTag = (assetId, assetList) => assetList.find((a) => a.id === assetId)?.tag || String(assetId);
+
 export const AppProvider = ({ children }) => {
   const [employees, setEmployees] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -80,20 +82,6 @@ export const AppProvider = ({ children }) => {
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
   // ---- Shapers -------------------------------------------------------
-
-  const shapeEmployee = useCallback((u) => ({
-    id: u.id,
-    name: u.name,
-    email: u.email,
-    role: ROLE_BACKEND_TO_UI[u.role] || "Employee",
-    roleRaw: u.role,
-    departmentId: u.departmentId,
-    dept: departments.find((d) => d.rawId === u.departmentId)?.name
-      || departments.find((d) => d.id === u.departmentId)?.name
-      || "Unassigned",
-    avatar: initials(u.name),
-    status: u.status,
-  }), [departments]);
 
   const shapeDepartment = useCallback((d) => ({
     id: d.id,
@@ -148,38 +136,7 @@ export const AppProvider = ({ children }) => {
     };
   }, [categories]);
 
-  const shapeBooking = useCallback((b) => ({
-    id: b.id,
-    assetTag: assets.find((a) => a.id === b.assetId)?.tag || String(b.assetId),
-    assetId: b.assetId,
-    employeeId: b.bookedBy,
-    startTime: b.startTime,
-    endTime: b.endTime,
-    status: b.cancelled ? "cancelled" : "approved",
-  }), [assets]);
-
-  const shapeCareTicket = useCallback((m) => ({
-    id: m.id,
-    assetTag: assets.find((a) => a.id === m.assetId)?.tag || String(m.assetId),
-    assetId: m.assetId,
-    issue: m.issue,
-    priority: (m.priority || "Medium").toLowerCase() === "high" ? "high" : "normal",
-    priorityRaw: m.priority,
-    status: m.status === "pending" ? "pending"
-      : m.status === "approved" ? "assigned"
-      : m.status === "assigned" ? "assigned"
-      : m.status === "in_progress" ? "in_progress"
-      : m.status === "resolved" ? "resolved"
-      : m.status === "rejected" ? "resolved"
-      : "pending",
-    statusRaw: m.status,
-    assigneeId: null,
-    date: m.createdAt,
-  }), [assets]);
-
   // ---- Fetch-all ------------------------------------------------------
-
-  const findAssetTag = (assetId, assetList) => (assetList || assets).find((a) => a.id === assetId)?.tag || String(assetId);
 
   const refreshAll = useCallback(async () => {
     setLoading(true);
@@ -347,7 +304,7 @@ export const AppProvider = ({ children }) => {
           departmentId: user.departmentId,
           avatar: initials(user.name),
         });
-      } catch (_) {
+      } catch {
         setToken(null);
       } finally {
         setBooting(false);
@@ -413,10 +370,15 @@ export const AppProvider = ({ children }) => {
   // No real impersonation endpoint exists on the backend. "switchUser" is
   // repurposed as a demo-only quick login using the seeded account's known
   // demo password, clearly distinct from an admin-only role assignment.
-  const DEMO_PASSWORDS = { admin: "Admin@123" }; // default for everyone else is Password@123
   const switchUser = async (userId) => {
     const target = employees.find((e) => String(e.id) === String(userId));
     if (!target) return;
+    // Non-admin sessions receive the directory without emails, so quick-switch
+    // can only work from an admin session — explain instead of silently failing.
+    if (!target.email) {
+      pushToast("Quick user switch is only available from an Admin session — log in as the user directly instead.", "warning");
+      return;
+    }
     const password = target.roleRaw === "admin" ? "Admin@123" : "Password@123";
     await login(target.email, password);
   };
@@ -439,7 +401,7 @@ export const AppProvider = ({ children }) => {
       if (assetData.heldBy) {
         try {
           await allocationsApi.create({ assetId: created.id, holderUserId: assetData.heldBy });
-        } catch (_) { /* leave available if allocation fails */ }
+        } catch { /* leave available if allocation fails */ }
       }
       await refreshAll();
       return { success: true, tag: created.tag };
@@ -687,8 +649,12 @@ export const AppProvider = ({ children }) => {
   const promoteEmployeeRole = async (employeeId, newRole, departmentName) => {
     try {
       const dept = departments.find((d) => d.name === departmentName);
+      // Accept both raw backend roles (employee/dept_head/asset_manager/admin,
+      // sent by the Setup directory) and legacy UI labels (Admin/Manager/Employee).
+      const BACKEND_ROLES = ["employee", "dept_head", "asset_manager", "admin"];
+      const role = BACKEND_ROLES.includes(newRole) ? newRole : ROLE_UI_TO_BACKEND[newRole];
       await usersApi.update(employeeId, {
-        role: ROLE_UI_TO_BACKEND[newRole] || undefined,
+        role: role || undefined,
         departmentId: dept ? dept.id : undefined,
       });
       await refreshAll();
@@ -723,7 +689,7 @@ export const AppProvider = ({ children }) => {
     try {
       await notificationsApi.markAllRead();
       setLedger((prev) => prev.map((item) => ({ ...item, unread: false })));
-    } catch (_) { /* non-fatal */ }
+    } catch { /* non-fatal */ }
   };
 
   // Demo reset: re-fetch from the server (the seed script is the real reset).

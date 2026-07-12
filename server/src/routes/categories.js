@@ -8,7 +8,7 @@ const router = express.Router();
 
 function shape(c) {
   let customFields = [];
-  try { customFields = JSON.parse(c.custom_fields || '[]'); } catch (_) { customFields = []; }
+  try { customFields = JSON.parse(c.custom_fields || '[]'); } catch { customFields = []; }
   return {
     id: c.id,
     name: c.name,

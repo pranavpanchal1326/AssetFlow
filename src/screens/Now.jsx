@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { AppContext } from "../context/AppContext";
 import { StampedTag } from "../components/StampedTag";
-import { AlertCircle, ArrowRight, Check, X } from "lucide-react";
+import { AlertCircle, Check, X } from "lucide-react";
 
 export const Now = () => {
   const { 
@@ -134,7 +134,6 @@ export const Now = () => {
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             {myHandoffsWaiting.map(handoff => {
-              const asset = assets.find(a => a.tag === handoff.assetTag);
               const fromUser = employees.find(e => e.id === handoff.fromEmployeeId);
               const toUser = employees.find(e => e.id === handoff.toEmployeeId);
               

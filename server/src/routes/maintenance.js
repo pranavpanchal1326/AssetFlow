@@ -17,9 +17,10 @@ const ACTIONS = {
   approve: { from: ['pending'], to: 'approved' },
   reject:  { from: ['pending'], to: 'rejected' },
   assign:  { from: ['approved', 'assigned'], to: 'assigned' },
-  start:   { from: ['assigned'], to: 'in_progress' },
-  // Require the request to be at least assigned before it can be resolved.
-  resolve: { from: ['in_progress', 'assigned'], to: 'resolved' },
+  // 'approved' is accepted for start/resolve: the kanban treats approved and
+  // assigned as one column, so a ticket may progress without a formal assign.
+  start:   { from: ['approved', 'assigned'], to: 'in_progress' },
+  resolve: { from: ['approved', 'assigned', 'in_progress'], to: 'resolved' },
 };
 
 function shape(m) {

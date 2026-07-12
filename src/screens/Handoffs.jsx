@@ -1,8 +1,7 @@
 import React, { useContext, useState, useEffect } from "react";
 import { AppContext } from "../context/AppContext";
-import { StampedTag } from "../components/StampedTag";
 import {
-  ArrowLeftRight, Check, X, UserMinus, UserCheck, RefreshCw,
+  ArrowLeftRight, Check, X, UserMinus, UserCheck,
   Search, UserSearch, ArrowDown, Ban, Package
 } from "lucide-react";
 
@@ -26,7 +25,6 @@ export const Handoffs = () => {
   // Inline Refusal state (shown below allocate form, not modal)
   const [inlineRefusal, setInlineRefusal] = useState(null);
 
-  const isManagerOrAdmin = ["Admin", "Manager"].includes(currentUser?.role);
   // Only asset_manager/dept_head may allocate directly or decide transfers server-side (RBAC).
   const canAllocate = ["asset_manager", "dept_head"].includes(currentUser?.roleRaw);
   const canDecideTransfers = ["asset_manager", "dept_head"].includes(currentUser?.roleRaw);
@@ -93,10 +91,9 @@ export const Handoffs = () => {
 
   // Count actionable (pending) handoffs
   const pendingHandoffs = handoffs.filter(h => h.status === "requested");
-  const completedHandoffs = handoffs.filter(h => h.status !== "requested");
 
   // Get asset icon based on category (simple lookup)
-  const getAssetIcon = (assetTag) => {
+  const getAssetIcon = () => {
     return <Package size={18} />;
   };
 
@@ -312,13 +309,11 @@ export const Handoffs = () => {
 
           {/* ===== CUSTODY FLOW CARDS ===== */}
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            {handoffs.slice().reverse().map((handoff, idx) => {
-              const asset = assets.find(a => a.tag === handoff.assetTag);
+            {handoffs.slice().reverse().map((handoff) => {
               const fromUser = employees.find(e => e.id === handoff.fromEmployeeId);
               const toUser = employees.find(e => e.id === handoff.toEmployeeId);
               const isPending = handoff.status === "requested";
               const isApproved = handoff.status === "approved";
-              const isDeclined = handoff.status === "declined";
 
               // Status badge class
               const badgeClass = isPending ? "pending" : isApproved ? "approved" : "declined";

@@ -1,6 +1,5 @@
 import React, { useContext, useState } from "react";
 import { AppContext } from "../context/AppContext";
-import { StampedTag } from "../components/StampedTag";
 import { Download, AlertTriangle } from "lucide-react";
 import { reportsApi } from "../api/client";
 

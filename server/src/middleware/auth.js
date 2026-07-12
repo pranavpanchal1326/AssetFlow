@@ -32,7 +32,7 @@ function requireAuth(req, res, next) {
     }
     req.user = user;
     next();
-  } catch (err) {
+  } catch {
     return res.status(401).json({ ok: false, error: 'Invalid or expired token' });
   }
 }

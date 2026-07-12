@@ -3,22 +3,16 @@ import { AppContext } from "../context/AppContext";
 import { ConstellationCanvas } from "../components/ConstellationCanvas";
 import {
   ArrowRight,
-  Layers,
-  ShieldCheck,
   Activity,
-  Lock,
   Eye,
   Sun,
   Moon,
-  Calendar,
-  Wrench,
-  CheckSquare,
   MousePointer,
   ChevronDown
 } from "lucide-react";
 
 export const Landing = ({ onEnterApp }) => {
-  const { assets, handoffs, bookings, theme, toggleTheme } = useContext(AppContext);
+  const { assets, handoffs, theme, toggleTheme } = useContext(AppContext);
   const [activeStep, setActiveStep] = useState(0);
   const [showBlueprintModal, setShowBlueprintModal] = useState(false);
   const containerRef = useRef(null);

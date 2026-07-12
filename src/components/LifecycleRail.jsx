@@ -15,7 +15,7 @@ export const LifecycleRail = ({ currentStatus, onChangeStatus, readOnly = false 
   // Helper to find index of current status
   const currentIndex = states.findIndex(s => s.key === currentStatus.toLowerCase());
 
-  const handleStepClick = (stateKey, idx) => {
+  const handleStepClick = (stateKey) => {
     if (readOnly || !onChangeStatus) return;
     onChangeStatus(stateKey);
   };

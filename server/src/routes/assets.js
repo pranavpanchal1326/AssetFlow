@@ -14,7 +14,7 @@ const CONDITIONS = ['New', 'Good', 'Fair', 'Poor'];
 
 function shape(a) {
   let customValues = {};
-  try { customValues = JSON.parse(a.custom_values || '{}'); } catch (_) { customValues = {}; }
+  try { customValues = JSON.parse(a.custom_values || '{}'); } catch { customValues = {}; }
   return {
     id: a.id,
     tag: a.tag,
@@ -145,7 +145,7 @@ router.get('/:id/qr', requireAuth, async (req, res) => {
   try {
     const dataUrl = await QRCode.toDataURL(asset.tag, { margin: 1, width: 240 });
     res.json({ ok: true, data: { tag: asset.tag, dataUrl } });
-  } catch (err) {
+  } catch {
     res.status(500).json({ ok: false, error: 'Could not generate QR code' });
   }
 });

@@ -1,6 +1,5 @@
 import React, { useContext, useState } from "react";
 import { AppContext } from "../context/AppContext";
-import { StampedTag } from "../components/StampedTag";
 import { RefusalAlert } from "../components/RefusalAlert";
 import { Calendar, Clock, Plus, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
 
