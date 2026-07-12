@@ -2,6 +2,12 @@
 
 **Enterprise Asset & Resource Management System**
 
+![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![SQLite](https://img.shields.io/badge/SQLite-WAL-003B57?logo=sqlite&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green)
+![Hackathon](https://img.shields.io/badge/Odoo-Hackathon-714B67)
+
 Track, allocate, maintain, and audit every physical asset in your organization — from laptops and conference rooms to vehicles and networking equipment — through one platform that enforces conflict-free allocation, approval-driven maintenance, overlap-proof resource booking, and auditable lifecycle tracking.
 
 ---
@@ -117,6 +123,18 @@ For full entity-relationship diagrams, state machine diagrams, and architectural
 **Ports:** API at `http://localhost:4000`, frontend at `http://localhost:5173` (Vite proxies `/api` → port 4000).
 
 ---
+## 📚 Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Architecture](ARCHITECTURE.md) | System architecture, Mermaid diagrams, workflows |
+| [Implementation Plan](IMPLEMENTATION.md) | Development roadmap |
+| [Product Requirements](PRD.md) | Functional requirements |
+| [Seed Data Package](docs/SEED_DATA_PACKAGE.md) | Enterprise seed data |
+| [Seed Data Review](docs/SEED_DATA_REVIEW.md) | Engineering review |
+| [Validation Report](docs/VALIDATION_REPORT.md) | QA validation |
+| TESTING.md | QA strategy *(coming soon)* |
+| USER_GUIDE.md | End-user manual *(coming soon)* |
 
 ## Project Structure
 
@@ -185,8 +203,8 @@ assetflow/
 
 ```bash
 # Clone the repository
-git clone https://github.com/<your-org>/assetflow.git
-cd assetflow
+git clone https://github.com/pranavpanchal1326/AssetFlow.git
+cd AssetFlow
 
 # Install backend dependencies
 cd server
