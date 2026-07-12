@@ -25,6 +25,8 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/assets', require('./routes/assets'));
 app.use('/api/allocations', require('./routes/allocations'));
 app.use('/api/transfers', require('./routes/transfers'));
+app.use('/api/bookings', require('./routes/bookings'));
+app.use('/api/maintenance', require('./routes/maintenance'));
 
 // 404 for unknown API routes.
 app.use('/api', (req, res) => {
@@ -42,6 +44,8 @@ if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`AssetFlow API listening on http://localhost:${PORT}`);
   });
+  // Cron-lite booking reminders (skipped during test imports).
+  require('./services/reminders').startReminders();
 }
 
 module.exports = app;
