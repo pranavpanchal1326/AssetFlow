@@ -2,7 +2,7 @@ import React, { useContext, useState } from "react";
 import { AppContext } from "../context/AppContext";
 import { StampedTag } from "../components/StampedTag";
 import { RefusalAlert } from "../components/RefusalAlert";
-import { Calendar, Clock, Plus, AlertTriangle } from "lucide-react";
+import { Calendar, Clock, Plus, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
 
 export const Bookings = () => {
   const { 
@@ -22,30 +22,34 @@ export const Bookings = () => {
   });
 
   // Booking Form State
-  const [bookingDate, setBookingDate] = useState("2026-07-13"); // Monday
+  const [bookingDate, setBookingDate] = useState("2026-07-13");
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("12:00");
+  const [showForm, setShowForm] = useState(false);
 
-  // Conflict Pre-render state
+  // Conflict state
   const [conflictBlock, setConflictBlock] = useState(null);
+  const [conflictInfo, setConflictInfo] = useState(null);
   const [refusalOpen, setRefusalOpen] = useState(false);
   const [refusalReason, setRefusalReason] = useState("");
 
   const activeAsset = assets.find(a => a.tag === activeAssetTag);
 
-  // Days of week (mock dates for Monday Jul 13 to Sun Jul 19, 2026)
+  // Days of week
   const weekDays = [
-    { key: "2026-07-13", label: "Mon", dateStr: "Jul 13" },
-    { key: "2026-07-14", label: "Tue", dateStr: "Jul 14" },
-    { key: "2026-07-15", label: "Wed", dateStr: "Jul 15" },
-    { key: "2026-07-16", label: "Thu", dateStr: "Jul 16" },
-    { key: "2026-07-17", label: "Fri", dateStr: "Jul 17" },
-    { key: "2026-07-18", label: "Sat", dateStr: "Jul 18" },
-    { key: "2026-07-19", label: "Sun", dateStr: "Jul 19" }
+    { key: "2026-07-13", label: "Mon", num: "13", full: "Mon 13" },
+    { key: "2026-07-14", label: "Tue", num: "14", full: "Tue 14" },
+    { key: "2026-07-15", label: "Wed", num: "15", full: "Wed 15", isToday: true },
+    { key: "2026-07-16", label: "Thu", num: "16", full: "Thu 16" },
+    { key: "2026-07-17", label: "Fri", num: "17", full: "Fri 17" },
+    { key: "2026-07-18", label: "Sat", num: "18", full: "Sat 18", isWeekend: true },
+    { key: "2026-07-19", label: "Sun", num: "19", full: "Sun 19", isWeekend: true }
   ];
 
-  // Hours displayed on grid
-  const hours = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
+  // Hours displayed on grid (9 AM to 6 PM)
+  const hours = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
+  const totalHours = hours.length;
+  const hourHeight = 56; // px per hour slot
 
   // Filter bookings for active asset
   const activeBookings = bookings.filter(b => b.assetTag === activeAssetTag && b.status === "approved");
@@ -56,6 +60,7 @@ export const Bookings = () => {
     if (!activeAssetTag) return;
 
     setConflictBlock(null);
+    setConflictInfo(null);
 
     const startDateTime = `${bookingDate}T${startTime}:00`;
     const endDateTime = `${bookingDate}T${endTime}:00`;
@@ -74,14 +79,17 @@ export const Bookings = () => {
 
     if (!res.success) {
       if (res.error === "overlap") {
-        // Find owner details
         const booker = employees.find(emp => emp.id === res.overlapping.employeeId)?.name || "Another user";
         
-        // Show conflict preview block on timetable
         setConflictBlock({
           date: bookingDate,
           start: startTime,
           end: endTime
+        });
+
+        setConflictInfo({
+          bookerName: booker,
+          assetName: activeAsset?.name || activeAssetTag,
         });
 
         setRefusalReason(`Overlap conflict detected. This slot is reserved by ${booker}.`);
@@ -90,25 +98,23 @@ export const Bookings = () => {
         alert(res.reason || "Booking failed.");
       }
     } else {
+      setShowForm(false);
       alert("Reservation confirmed successfully.");
     }
   };
 
-  // Helper to map time to percentage position in columns
-  const getTimePositionPercent = (timeStr) => {
+  // Map time string to pixel offset
+  const getTimePixelOffset = (timeStr) => {
     const [h, m] = timeStr.split(":").map(Number);
     const totalMinutes = h * 60 + m;
-    const startOfDayMinutes = 9 * 60; // 09:00 start
-    const endOfDayMinutes = 18 * 60; // 18:00 end
-    const minutesInDay = endOfDayMinutes - startOfDayMinutes;
-    
-    const elapsed = totalMinutes - startOfDayMinutes;
-    return (elapsed / minutesInDay) * 100;
+    const startMinutes = 8 * 60; // 08:00 start
+    const elapsedMinutes = totalMinutes - startMinutes;
+    return (elapsedMinutes / 60) * hourHeight;
   };
 
   return (
     <div>
-      {/* Refusal Alert Modal Popup */}
+      {/* Refusal Alert Modal */}
       <RefusalAlert 
         isOpen={refusalOpen}
         title="Schedule Overlap"
@@ -116,212 +122,270 @@ export const Bookings = () => {
         onClose={() => setRefusalOpen(false)}
       />
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-        <div className="flex-align-center">
-          <span className="mono" style={{ fontSize: "12px", color: "var(--text-3)" }}>BOOKABLE /</span>
+      {/* Page Header */}
+      <div className="bookings-page-header">
+        <div>
+          <h2>Resource Schedule: Week 29</h2>
+          {activeAsset && (
+            <div style={{ 
+              display: "flex", alignItems: "center", gap: "12px", marginTop: "4px" 
+            }}>
+              <span style={{ 
+                fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--text-3)" 
+              }}>
+                Location: <strong style={{ color: "var(--ink)" }}>{activeAsset.location}</strong>
+              </span>
+              <span className={`condition-stamp ${activeAsset.condition}`}>
+                {activeAsset.condition}
+              </span>
+            </div>
+          )}
+        </div>
+        <div className="bookings-asset-selector">
+          <span>Bookable /</span>
           <select 
             value={activeAssetTag} 
-            onChange={(e) => { setActiveAssetTag(e.target.value); setConflictBlock(null); }}
-            style={{ 
-              padding: "8px 16px", 
-              fontSize: "14px", 
-              fontWeight: "600",
-              backgroundColor: "var(--surface)", 
-              border: "1px solid var(--hairline)", 
-              borderRadius: "4px" 
+            onChange={(e) => { 
+              setActiveAssetTag(e.target.value); 
+              setConflictBlock(null); 
+              setConflictInfo(null); 
             }}
           >
-            {bookableAssets.map(c => <option key={c.tag} value={c.tag}>{c.tag} — {c.name}</option>)}
+            {bookableAssets.map(c => (
+              <option key={c.tag} value={c.tag}>{c.tag} — {c.name}</option>
+            ))}
           </select>
         </div>
+      </div>
 
-        {activeAsset && (
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <span style={{ fontSize: "12px", color: "var(--text-3)" }}>Location: <strong>{activeAsset.location}</strong></span>
-            <span className={`condition-stamp ${activeAsset.condition}`} style={{ fontSize: "9px" }}>
-              {activeAsset.condition}
-            </span>
+      {/* Hot Band - Schedule Conflict Alert */}
+      {conflictInfo && (
+        <div className="booking-hot-band">
+          <AlertTriangle size={18} />
+          <div>
+            <div className="booking-hot-band-label">Schedule Conflict Detected</div>
+            <p>
+              Resource "{conflictInfo.assetName}" requested by {currentUser?.name || "you"} intersects with confirmed booking by {conflictInfo.bookerName}. Review required.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: "grid", gridTemplateColumns: showForm ? "280px 1fr" : "1fr", gap: "24px", alignItems: "start" }}>
+        
+        {/* Booking Form Panel (toggleable) */}
+        {showForm && (
+          <div className="booking-form-panel">
+            <h3>
+              <Calendar size={16} />
+              Request Time Slot
+            </h3>
+
+            <form onSubmit={handleBookingSubmit}>
+              <div className="form-group">
+                <label>Booking Date</label>
+                <select 
+                  className="form-control"
+                  value={bookingDate}
+                  onChange={(e) => setBookingDate(e.target.value)}
+                  required
+                >
+                  {weekDays.map(d => (
+                    <option key={d.key} value={d.key}>{d.label} — Jul {d.num}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid-2">
+                <div className="form-group">
+                  <label>Start Time</label>
+                  <select 
+                    className="form-control mono"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    required
+                  >
+                    {hours.slice(0, -1).map(h => <option key={h} value={h}>{h}</option>)}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>End Time</label>
+                  <select 
+                    className="form-control mono"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    required
+                  >
+                    {hours.slice(1).map(h => <option key={h} value={h}>{h}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <button type="submit" className="btn btn-primary" style={{ width: "100%", marginTop: "8px" }}>
+                <Clock size={14} />
+                <span>Reserve Slot</span>
+              </button>
+
+              <div style={{ 
+                marginTop: "16px", paddingTop: "12px", borderTop: "1px solid var(--hairline-2)", 
+                fontSize: "11px", color: "var(--text-3)" 
+              }}>
+                <strong>Test Overlap:</strong> Select Mon (Jul 13), set time to <strong>09:00 - 11:00</strong> and reserve.
+              </div>
+            </form>
           </div>
         )}
-      </div>
 
-      <div className="grid-2" style={{ gridTemplateColumns: "300px 1fr", alignItems: "start" }}>
-        
-        {/* Reservation request form panel */}
-        <div className="data-table-card" style={{ padding: "24px" }}>
-          <h3 style={{ fontSize: "14px", fontWeight: "600", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
-            <Calendar size={16} />
-            <span>Request Time Slot</span>
-          </h3>
-
-          <form onSubmit={handleBookingSubmit}>
-            
-            <div className="form-group">
-              <label>Booking Date</label>
-              <select 
-                className="form-control"
-                value={bookingDate}
-                onChange={(e) => setBookingDate(e.target.value)}
-                required
-              >
-                {weekDays.map(d => (
-                  <option key={d.key} value={d.key}>{d.label} — {d.dateStr}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="grid-2">
-              <div className="form-group">
-                <label>Start Time</label>
-                <select 
-                  className="form-control mono"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  required
-                >
-                  {hours.slice(0, -1).map(h => <option key={h} value={h}>{h}</option>)}
-                </select>
-              </div>
-              <div className="form-group">
-                <label>End Time</label>
-                <select 
-                  className="form-control mono"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  required
-                >
-                  {hours.slice(1).map(h => <option key={h} value={h}>{h}</option>)}
-                </select>
-              </div>
-            </div>
-
-            <button type="submit" className="btn btn-primary" style={{ width: "100%", marginTop: "8px" }}>
-              <Clock size={16} />
-              <span>Reserve Slot</span>
-            </button>
-
-            {/* Quick Testing shortcuts */}
-            <div style={{ marginTop: "24px", paddingTop: "16px", borderTop: "1px solid var(--hairline-2)", fontSize: "11px", color: "var(--text-3)" }}>
-              <strong>Test Overlap:</strong> Select Mon (Jul 13), set time to <strong>09:00 - 11:00</strong> and reserve to check overlap handling (Sony FX3 has active booking).
-            </div>
-
-          </form>
-        </div>
-
-        {/* Timetable weekly grid calendar */}
+        {/* Timetable Grid */}
         <div>
-          <div className="timetable-grid">
-            
-            {/* Corner header */}
-            <div className="timetable-header">
-              <div className="timetable-corner" />
-              {weekDays.map(day => (
-                <div key={day.key} className="timetable-day-header">
-                  {day.label} <span style={{ fontWeight: "normal", fontSize: "10px", marginLeft: "4px", color: "var(--text-3)" }}>{day.dateStr}</span>
-                </div>
-              ))}
+          {/* Controls Row */}
+          <div className="booking-controls">
+            <div className="booking-week-nav">
+              <button className="booking-week-btn"><ChevronLeft size={14} /> Prev</button>
+              <button className="booking-week-btn active">Current</button>
+              <button className="booking-week-btn">Next <ChevronRight size={14} /></button>
+            </div>
+            <button 
+              className="booking-new-cta" 
+              onClick={() => setShowForm(!showForm)}
+            >
+              <Plus size={14} />
+              {showForm ? "Close Form" : "New Booking"}
+            </button>
+          </div>
+
+          {/* Brutalist Timetable */}
+          <div className="brutalist-timetable">
+            {/* Header Row */}
+            <div className="brutalist-timetable-header">
+              <div className="brutalist-time-corner">
+                <span>Time</span>
+              </div>
+              <div className="brutalist-days-row">
+                {weekDays.map(day => (
+                  <div 
+                    key={day.key} 
+                    className={`brutalist-day-cell ${day.isToday ? "today" : ""} ${day.isWeekend ? "weekend" : ""}`}
+                  >
+                    <span>{day.full}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* Timetable slots */}
-            <div className="timetable-body">
-              {/* Vertical hour markers on the left */}
-              <div style={{ display: "flex", flexDirection: "column" }}>
+            {/* Body */}
+            <div className="brutalist-timetable-body" style={{ height: `${totalHours * hourHeight}px` }}>
+              {/* Time Column */}
+              <div className="brutalist-time-column">
                 {hours.map(hour => (
-                  <div key={hour} className="timetable-hour-label">{hour}</div>
+                  <div key={hour} className="brutalist-hour-label">{hour}</div>
                 ))}
               </div>
 
-              {/* Grid content columns */}
-              {weekDays.map(day => {
-                // Find bookings for this day
-                const dayBookings = activeBookings.filter(b => {
-                  const bDate = b.startTime.split("T")[0];
-                  return bDate === day.key;
-                });
+              {/* Grid Area */}
+              <div className="brutalist-grid-area">
+                {/* Background hour lines */}
+                <div className="brutalist-hour-lines">
+                  {hours.map((_, i) => (
+                    <div key={i} className="brutalist-hour-line" />
+                  ))}
+                </div>
 
-                // Check if this day has the temporary conflict preview block
-                const isConflictDay = conflictBlock && conflictBlock.date === day.key;
+                {/* Day Columns with Booking Blocks */}
+                {weekDays.map(day => {
+                  const dayBookings = activeBookings.filter(b => {
+                    const bDate = b.startTime.split("T")[0];
+                    return bDate === day.key;
+                  });
 
-                return (
-                  <div key={day.key} className="timetable-slots-column" style={{ height: `${(hours.length - 1) * 50}px`, position: "relative" }}>
-                    
-                    {/* Render helper lines representing hours */}
-                    {hours.slice(0, -1).map((_, i) => (
-                      <div 
-                        key={i} 
-                        style={{ 
-                          position: "absolute", 
-                          top: `${i * 50}px`, 
-                          left: 0, 
-                          right: 0, 
-                          height: "1px", 
-                          backgroundColor: "var(--hairline-2)" 
-                        }} 
-                      />
-                    ))}
+                  const isConflictDay = conflictBlock && conflictBlock.date === day.key;
 
-                    {/* Active bookings blocks */}
-                    {dayBookings.map(b => {
-                      const startStr = b.startTime.split("T")[1].substring(0, 5);
-                      const endStr = b.endTime.split("T")[1].substring(0, 5);
-                      
-                      const topPct = getTimePositionPercent(startStr);
-                      const bottomPct = getTimePositionPercent(endStr);
-                      const heightPct = bottomPct - topPct;
+                  return (
+                    <div 
+                      key={day.key} 
+                      className={`brutalist-day-column ${day.isToday ? "today-column" : ""}`}
+                    >
+                      {/* Current Time Indicator (only on today) */}
+                      {day.isToday && (() => {
+                        // Position at ~12:30 for visual demo (since mock data is Jul 15 Wed)
+                        const demoTimeOffset = getTimePixelOffset("12:30");
+                        return (
+                          <div className="current-time-line" style={{ top: `${demoTimeOffset}px` }}>
+                            <div className="current-time-dot" />
+                          </div>
+                        );
+                      })()}
 
-                      const booker = employees.find(emp => emp.id === b.employeeId);
+                      {/* Active booking blocks */}
+                      {dayBookings.map(b => {
+                        const startStr = b.startTime.split("T")[1].substring(0, 5);
+                        const endStr = b.endTime.split("T")[1].substring(0, 5);
+                        
+                        const topPx = getTimePixelOffset(startStr);
+                        const bottomPx = getTimePixelOffset(endStr);
+                        const heightPx = bottomPx - topPx;
 
-                      return (
-                        <div 
-                          key={b.id} 
-                          className="timetable-block"
-                          style={{
-                            top: `${topPct}%`,
-                            height: `${heightPct}%`,
-                            title: `Reserved by ${booker?.name}`
-                          }}
-                        >
-                          <span style={{ fontWeight: "600" }}>{booker?.name}</span>
-                          <span style={{ fontSize: "9.5px", opacity: 0.8 }}>{startStr} - {endStr}</span>
-                        </div>
-                      );
-                    })}
+                        const booker = employees.find(emp => emp.id === b.employeeId);
 
-                    {/* Conflict Preview Hatch block */}
-                    {isConflictDay && (() => {
-                      const topPct = getTimePositionPercent(conflictBlock.start);
-                      const bottomPct = getTimePositionPercent(conflictBlock.end);
-                      const heightPct = bottomPct - topPct;
+                        return (
+                          <div 
+                            key={b.id} 
+                            className="booking-block"
+                            style={{
+                              top: `${topPx}px`,
+                              height: `${heightPx}px`,
+                            }}
+                            title={`Reserved by ${booker?.name}`}
+                          >
+                            <span className="booking-block-title">
+                              {activeAsset?.name || activeAssetTag}
+                            </span>
+                            <span className="booking-block-person">{booker?.name}</span>
+                            <span className="booking-block-time">{startStr} – {endStr}</span>
+                          </div>
+                        );
+                      })}
 
-                      return (
-                        <div 
-                          className="timetable-block hazard-hatch"
-                          style={{
-                            top: `${topPct}%`,
-                            height: `${heightPct}%`,
-                            zIndex: 15
-                          }}
-                        >
-                          <span style={{ fontWeight: "600", display: "flex", alignItems: "center", gap: "2px" }}>
-                            <AlertTriangle size={10} />
-                            <span>Overlap</span>
-                          </span>
-                          <span style={{ fontSize: "9.5px" }}>{conflictBlock.start} - {conflictBlock.end}</span>
-                        </div>
-                      );
-                    })()}
+                      {/* Conflict Preview Block */}
+                      {isConflictDay && (() => {
+                        const topPx = getTimePixelOffset(conflictBlock.start);
+                        const bottomPx = getTimePixelOffset(conflictBlock.end);
+                        const heightPx = bottomPx - topPx;
 
-                  </div>
-                );
-              })}
-
+                        return (
+                          <div 
+                            className="booking-block conflict-block"
+                            style={{
+                              top: `${topPx}px`,
+                              height: `${heightPx}px`,
+                              left: "15%",
+                              right: "3px",
+                            }}
+                          >
+                            <span className="conflict-stamp">Rejected</span>
+                            <span className="booking-block-title" style={{ color: "var(--ink)" }}>
+                              {activeAsset?.name || activeAssetTag}
+                            </span>
+                            <span className="booking-block-person" style={{ color: "var(--text-2)" }}>
+                              {currentUser?.name || "You"}
+                            </span>
+                            <span className="booking-block-time" style={{ color: "var(--text-2)" }}>
+                              {conflictBlock.start} – {conflictBlock.end}
+                            </span>
+                            <div className="conflict-reason">
+                              OVERLAP ERR: {conflictInfo?.bookerName?.toUpperCase() || "CONFLICT"}
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-
           </div>
         </div>
-
       </div>
-
     </div>
   );
 };

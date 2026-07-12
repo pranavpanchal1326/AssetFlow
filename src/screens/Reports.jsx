@@ -8,7 +8,7 @@ export const Reports = () => {
 
   // Mocks CSV Downloader
   const downloadCSV = (title) => {
-    alert(`CSV Download initiated for [${title}] — MNC Security verified.`);
+    alert(`CSV Download initiated for [${title}] — Security verified.`);
   };
 
   // Helper calculations
