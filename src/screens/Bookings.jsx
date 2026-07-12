@@ -5,12 +5,13 @@ import { RefusalAlert } from "../components/RefusalAlert";
 import { Calendar, Clock, Plus, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
 
 export const Bookings = () => {
-  const { 
-    assets, 
-    bookings, 
-    employees, 
-    addBooking, 
-    currentUser 
+  const {
+    assets,
+    bookings,
+    employees,
+    addBooking,
+    currentUser,
+    pushToast
   } = useContext(AppContext);
 
   // Filter bookable assets
@@ -55,7 +56,8 @@ export const Bookings = () => {
   const activeBookings = bookings.filter(b => b.assetTag === activeAssetTag && b.status === "approved");
 
   // Submit request
-  const handleBookingSubmit = (e) => {
+  const [submitting, setSubmitting] = useState(false);
+  const handleBookingSubmit = async (e) => {
     e.preventDefault();
     if (!activeAssetTag) return;
 
@@ -66,16 +68,18 @@ export const Bookings = () => {
     const endDateTime = `${bookingDate}T${endTime}:00`;
 
     if (new Date(endDateTime) <= new Date(startDateTime)) {
-      alert("End time must be after start time.");
+      pushToast("End time must be after start time.", "warning");
       return;
     }
 
-    const res = addBooking({
+    setSubmitting(true);
+    const res = await addBooking({
       assetTag: activeAssetTag,
-      employeeId: currentUser?.id || "E-1",
+      employeeId: currentUser?.id,
       startTime: startDateTime,
       endTime: endDateTime
     });
+    setSubmitting(false);
 
     if (!res.success) {
       if (res.error === "overlap") {
@@ -95,11 +99,11 @@ export const Bookings = () => {
         setRefusalReason(`Overlap conflict detected. This slot is reserved by ${booker}.`);
         setRefusalOpen(true);
       } else {
-        alert(res.reason || "Booking failed.");
+        pushToast(res.reason || "Booking failed.", "error");
       }
     } else {
       setShowForm(false);
-      alert("Reservation confirmed successfully.");
+      pushToast("Reservation confirmed successfully.", "success");
     }
   };
 
@@ -221,9 +225,9 @@ export const Bookings = () => {
                 </div>
               </div>
 
-              <button type="submit" className="btn btn-primary" style={{ width: "100%", marginTop: "8px" }}>
+              <button type="submit" className="btn btn-primary" style={{ width: "100%", marginTop: "8px" }} disabled={submitting}>
                 <Clock size={14} />
-                <span>Reserve Slot</span>
+                <span>{submitting ? "Reserving…" : "Reserve Slot"}</span>
               </button>
 
               <div style={{ 

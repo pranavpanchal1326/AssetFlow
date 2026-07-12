@@ -23,14 +23,18 @@ function fullUser(u) {
   };
 }
 
-// GET /users — admin: full directory; others: id+name pickers only.
+// GET /users — admin: full directory (incl. email/status). Everyone else gets
+// name/role/department only — enough for pickers, org-chart-style UI, and
+// department-scoped reports, without leaking email addresses or account status.
 router.get('/', requireAuth, (req, res) => {
   if (req.user.role === 'admin') {
     const rows = db.prepare('SELECT * FROM users ORDER BY name').all();
     return res.json({ ok: true, data: rows.map(fullUser) });
   }
-  const rows = db.prepare('SELECT id, name FROM users WHERE status = \'active\' ORDER BY name').all();
-  res.json({ ok: true, data: rows.map((u) => ({ id: u.id, name: u.name })) });
+  const rows = db.prepare(
+    'SELECT id, name, role, department_id FROM users WHERE status = \'active\' ORDER BY name'
+  ).all();
+  res.json({ ok: true, data: rows.map((u) => ({ id: u.id, name: u.name, role: u.role, departmentId: u.department_id })) });
 });
 
 // PUT /users/:id {role?,departmentId?,status?} (admin only — role assignment).

@@ -5,14 +5,15 @@ import { ConsequenceGate } from "../components/ConsequenceGate";
 import { AlertCircle, CheckCircle, HelpCircle, ShieldAlert, ShieldCheck } from "lucide-react";
 
 export const Audits = () => {
-  const { 
-    audits, 
-    assets, 
-    employees, 
-    departments, 
-    createAuditCycle, 
-    updateAuditCheckItem, 
-    closeAuditCycle 
+  const {
+    audits,
+    assets,
+    employees,
+    departments,
+    createAuditCycle,
+    updateAuditCheckItem,
+    closeAuditCycle,
+    pushToast
   } = useContext(AppContext);
 
   // States
@@ -30,31 +31,29 @@ export const Audits = () => {
   const [gateOpen, setGateOpen] = useState(false);
   const [gateAuditId, setGateAuditId] = useState("");
 
-  const activeAudit = audits.find(a => a.id === selectedAuditId);
+  const activeAudit = audits.find(a => String(a.id) === String(selectedAuditId));
 
   // Handle create submit
-  const handleCreateAudit = (e) => {
+  const [creatingAudit, setCreatingAudit] = useState(false);
+  const handleCreateAudit = async (e) => {
     e.preventDefault();
     if (!auditTitle || !scopeDeptId) return;
 
-    createAuditCycle({
+    setCreatingAudit(true);
+    const res = await createAuditCycle({
       title: auditTitle,
       scopeDeptDeptId: scopeDeptId,
       endDate
     });
+    setCreatingAudit(false);
 
+    if (!res.success) return; // context already surfaces the error banner
+
+    pushToast(`Audit cycle "${auditTitle}" created.`, "success");
     setAuditTitle("");
     setScopeDeptId("");
     setShowCreateForm(false);
-    
-    // Auto-select newly created audit
-    setTimeout(() => {
-      if (audits.length > 0) {
-        setSelectedAuditId(audits[audits.length - 1].id);
-      }
-    }, 100);
-
-    alert("Audit cycle initiated successfully.");
+    setSelectedAuditId(res.id);
   };
 
   // Trigger Consequence Gate
@@ -64,10 +63,10 @@ export const Audits = () => {
   };
 
   // Commit close audit
-  const handleAuthorizeClose = (businessReason) => {
+  const handleAuthorizeClose = async (businessReason) => {
     setGateOpen(false);
-    closeAuditCycle(gateAuditId);
-    alert(`Audit cycle successfully closed.\nBusiness authorization logged:\n"${businessReason}"`);
+    const res = await closeAuditCycle(gateAuditId);
+    if (res.success) pushToast(`Audit cycle closed. ${businessReason}`, "success");
   };
 
   // Compile list of affected items & people for Consequence Gate
@@ -116,7 +115,7 @@ export const Audits = () => {
           <span className="mono" style={{ fontSize: "12px", color: "var(--text-3)" }}>ACTIVE AUDIT /</span>
           <select 
             value={selectedAuditId} 
-            onChange={(e) => setSelectedAssetId(e.target.value) || setSelectedAuditId(e.target.value)}
+            onChange={(e) => setSelectedAuditId(e.target.value)}
             style={{ 
               padding: "8px 16px", 
               fontSize: "14px", 

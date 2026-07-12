@@ -1,39 +1,27 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { AppContext } from "../context/AppContext";
 import { ConstellationCanvas } from "../components/ConstellationCanvas";
-import { 
-  ArrowRight, 
-  Layers, 
-  ShieldCheck, 
-  Activity, 
-  Lock, 
-  Eye, 
-  FileText,
+import {
+  ArrowRight,
+  Layers,
+  ShieldCheck,
+  Activity,
+  Lock,
+  Eye,
   Sun,
   Moon,
-  Search,
-  Terminal,
   Calendar,
   Wrench,
   CheckSquare,
-  Sparkles,
   MousePointer,
   ChevronDown
 } from "lucide-react";
 
 export const Landing = ({ onEnterApp }) => {
-  const { assets, handoffs, bookings } = useContext(AppContext);
+  const { assets, handoffs, bookings, theme, toggleTheme } = useContext(AppContext);
   const [activeStep, setActiveStep] = useState(0);
   const [showBlueprintModal, setShowBlueprintModal] = useState(false);
-  const [showCommandPalette, setShowCommandPalette] = useState(false);
-  const [theme, setTheme] = useState("dark");
-  const [commandQuery, setCommandQuery] = useState("");
   const containerRef = useRef(null);
-
-  // Sync theme with body attribute
-  useEffect(() => {
-    document.body.setAttribute("data-theme", "dark"); // Lock landing page to dark theme
-  }, []);
 
   // Update active step based on scroll position
   useEffect(() => {
@@ -48,21 +36,6 @@ export const Landing = ({ onEnterApp }) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Command Palette global keyboard listener
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        setShowCommandPalette((prev) => !prev);
-      }
-      if (e.key === "Escape") {
-        setShowCommandPalette(false);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
-
   const scrollToSection = (index) => {
     const height = window.innerHeight || 800;
     window.scrollTo({
@@ -70,20 +43,6 @@ export const Landing = ({ onEnterApp }) => {
       behavior: "smooth"
     });
   };
-
-  const commandPaletteItems = [
-    { label: "Enter AssetFlow App", shortcut: "Enter", action: onEnterApp },
-    { label: "View Technical Blueprint Spec", shortcut: "⌘B", action: () => { setShowBlueprintModal(true); setShowCommandPalette(false); } },
-    { label: "Scroll to Active Constellation", shortcut: "1", action: () => { scrollToSection(0); setShowCommandPalette(false); } },
-    { label: "Scroll to Handoff Flow", shortcut: "2", action: () => { scrollToSection(2); setShowCommandPalette(false); } },
-    { label: "Scroll to Tension & Overdue", shortcut: "3", action: () => { scrollToSection(3); setShowCommandPalette(false); } },
-    { label: "Scroll to Collision Rejection", shortcut: "4", action: () => { scrollToSection(4); setShowCommandPalette(false); } },
-    { label: "Scroll to Live Bridge Preview", shortcut: "5", action: () => { scrollToSection(5); setShowCommandPalette(false); } }
-  ];
-
-  const filteredCommandItems = commandPaletteItems.filter(item => 
-    item.label.toLowerCase().includes(commandQuery.toLowerCase())
-  );
 
   // HUD steps for scrollytelling
   const hudSteps = [
@@ -113,49 +72,27 @@ export const Landing = ({ onEnterApp }) => {
         </nav>
 
         <div style={{ display: "flex", alignItems: "center", gap: "12px", height: "36px" }}>
-          {/* Command Palette Trigger */}
-          <button 
-            className="btn" 
-            onClick={() => setShowCommandPalette(true)}
-            style={{ 
-              height: "36px", 
-              padding: "0 12px", 
-              fontSize: "12px", 
-              gap: "6px", 
-              display: "flex", 
-              alignItems: "center", 
+          {/* Theme toggle */}
+          <button
+            className="btn"
+            onClick={toggleTheme}
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            aria-label="Toggle color theme"
+            style={{
+              height: "36px",
+              width: "36px",
+              padding: 0,
+              display: "inline-flex",
+              alignItems: "center",
               justifyContent: "center",
               backgroundColor: "rgba(255, 255, 255, 0.04)",
               border: "1px solid rgba(255, 255, 255, 0.08)",
               color: "#E4E4E7"
             }}
           >
-            <Search size={12} />
-            <span style={{ color: "rgba(255, 255, 255, 0.4)" }}>Search</span>
-            <kbd className="cmd-palette-shortcut" style={{ fontSize: "8px", padding: "1px 4px", border: "1px solid rgba(255, 255, 255, 0.15)", backgroundColor: "rgba(0, 0, 0, 0.2)" }}>Ctrl+K</kbd>
+            {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
           </button>
 
-          {/* Blueprint Specs Modal Trigger */}
-          <button 
-            className="btn" 
-            onClick={() => setShowBlueprintModal(true)}
-            style={{ 
-              height: "36px", 
-              fontSize: "12px", 
-              borderStyle: "dashed", 
-              display: "inline-flex", 
-              alignItems: "center", 
-              gap: "6px", 
-              justifyContent: "center",
-              backgroundColor: "transparent",
-              borderColor: "rgba(255, 255, 255, 0.2)",
-              color: "#E4E4E7"
-            }}
-          >
-            <FileText size={12} />
-            <span>Blueprint</span>
-          </button>
-          
           {/* Primary CTA */}
           <button 
             className="btn btn-primary" 
@@ -193,7 +130,7 @@ export const Landing = ({ onEnterApp }) => {
           pointerEvents: "auto"
         }}
       >
-        <ConstellationCanvas activeStep={activeStep} prefersReducedMotion={false} theme="dark" />
+        <ConstellationCanvas activeStep={activeStep} prefersReducedMotion={false} theme={theme} />
       </div>
 
       {/* Scroll HUD dot navigation */}
@@ -213,11 +150,6 @@ export const Landing = ({ onEnterApp }) => {
         
         {/* ACT 1: ARRIVAL — The Void Hero */}
         <section className="story-section" style={{ height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "flex-start", paddingLeft: "10%" }}>
-          <div className="brand-pill">
-            <span className="brand-pill-dot" />
-            <span>AssetFlow v1.5 · Cinematic Edition</span>
-          </div>
-
           <h1 className="landing-fraunces-headline" style={{ marginBottom: "20px" }}>
             Your inventory<br />is alive.
           </h1>
@@ -471,51 +403,6 @@ export const Landing = ({ onEnterApp }) => {
               <button className="btn btn-primary" onClick={() => setShowBlueprintModal(false)} style={{ backgroundColor: "#2C5FE0" }}>
                 <span>Close Spec</span>
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Sleek Command Palette ⌘K Overlay Modal */}
-      {showCommandPalette && (
-        <div className="modal-overlay" onClick={() => setShowCommandPalette(false)} style={{ backgroundColor: "rgba(10, 10, 11, 0.8)", zIndex: 1200 }}>
-          <div className="cmd-palette-wrapper" onClick={(e) => e.stopPropagation()} style={{ backgroundColor: "rgba(24, 24, 27, 0.95)", borderColor: "rgba(255, 255, 255, 0.1)" }}>
-            <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-              <Search size={16} style={{ position: "absolute", left: "20px", color: "rgba(255, 255, 255, 0.4)" }} />
-              <input 
-                type="text"
-                className="cmd-palette-input"
-                placeholder="Type a command or search sections..."
-                value={commandQuery}
-                onChange={(e) => setCommandQuery(e.target.value)}
-                autoFocus
-                style={{ paddingLeft: "48px", borderBottom: "1px solid rgba(255, 255, 255, 0.08)", color: "#FFFFFF" }}
-              />
-            </div>
-            <div className="cmd-palette-results">
-              {filteredCommandItems.length > 0 ? (
-                filteredCommandItems.map((item, idx) => (
-                  <div 
-                    key={idx} 
-                    className="cmd-palette-item"
-                    onClick={() => {
-                      item.action();
-                      setShowCommandPalette(false);
-                    }}
-                    style={{ color: "rgba(255, 255, 255, 0.7)" }}
-                  >
-                    <span>{item.label}</span>
-                    <kbd className="cmd-palette-shortcut" style={{ backgroundColor: "rgba(255, 255, 255, 0.05)", borderColor: "rgba(255, 255, 255, 0.1)", color: "rgba(255, 255, 255, 0.4)" }}>{item.shortcut}</kbd>
-                  </div>
-                ))
-              ) : (
-                <div style={{ padding: "16px", textAlign: "center", color: "rgba(255, 255, 255, 0.4)", fontSize: "13px" }}>
-                  No matching command results found.
-                </div>
-              )}
-            </div>
-            <div style={{ height: "32px", borderTop: "1px solid rgba(255, 255, 255, 0.08)", backgroundColor: "rgba(0, 0, 0, 0.3)", display: "flex", alignItems: "center", justifyContent: "flex-end", padding: "0 16px", fontSize: "10px", color: "rgba(255, 255, 255, 0.4)" }}>
-              <span>Press <kbd className="cmd-palette-shortcut" style={{ fontSize: "8px", padding: "1px 4px", backgroundColor: "rgba(255, 255, 255, 0.05)", borderColor: "rgba(255, 255, 255, 0.1)" }}>Esc</kbd> to close</span>
             </div>
           </div>
         </div>

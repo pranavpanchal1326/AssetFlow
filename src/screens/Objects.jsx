@@ -5,15 +5,18 @@ import { LifecycleRail } from "../components/LifecycleRail";
 import { Search, Filter, QrCode, X, Plus, Calendar, Wrench, Download } from "lucide-react";
 
 export const Objects = ({ globalSearchQuery = "" }) => {
-  const { 
-    assets, 
-    categories, 
-    employees, 
-    handoffs, 
-    careTickets, 
+  const {
+    assets,
+    categories,
+    employees,
+    departments,
+    handoffs,
+    careTickets,
     updateAssetDetails,
     registerAsset,
-    currentUser 
+    uploadAssetPhoto,
+    currentUser,
+    pushToast
   } = useContext(AppContext);
 
   // States
@@ -23,6 +26,15 @@ export const Objects = ({ globalSearchQuery = "" }) => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [showRegisterForm, setShowRegisterForm] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  // Keep the open detail drawer in sync with the live assets array — e.g.
+  // after a photo upload or status change triggers a context refresh.
+  useEffect(() => {
+    if (!selectedAsset) return;
+    const fresh = assets.find(a => a.tag === selectedAsset.tag);
+    if (fresh && fresh !== selectedAsset) setSelectedAsset(fresh);
+  }, [assets, selectedAsset]);
 
   // Sync global search from sidebar
   useEffect(() => {
@@ -57,11 +69,13 @@ export const Objects = ({ globalSearchQuery = "" }) => {
     setRegCustomFields({});
   };
 
-  const handleRegisterSubmit = (e) => {
+  const [registering, setRegistering] = useState(false);
+  const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     if (!regName || !regCategory) return;
 
-    registerAsset({
+    setRegistering(true);
+    const res = await registerAsset({
       name: regName,
       category: regCategory,
       serial: regSerial || `SR-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
@@ -72,7 +86,11 @@ export const Objects = ({ globalSearchQuery = "" }) => {
       bookable: regBookable,
       customFields: regCustomFields
     });
+    setRegistering(false);
 
+    if (!res.success) return; // context already surfaces the error banner
+
+    pushToast(`Asset registered: ${res.tag}`, "success");
     setShowRegisterForm(false);
     resetRegForm();
   };
@@ -166,7 +184,7 @@ export const Objects = ({ globalSearchQuery = "" }) => {
             <option value="disposed">Disposed</option>
           </select>
 
-          {["Admin", "Manager"].includes(currentUser?.role) && (
+          {currentUser?.roleRaw === "asset_manager" && (
             <button className="btn btn-primary" onClick={() => setShowRegisterForm(true)}>
               <Plus size={14} />
               <span>Register</span>
@@ -222,7 +240,10 @@ export const Objects = ({ globalSearchQuery = "" }) => {
               ) : (
                 filteredAssets.map(asset => {
                   const holder = employees.find(e => e.id === asset.heldBy);
-                  
+                  const holderDept = !holder && asset.heldByDept
+                    ? departments.find(d => d.id === asset.heldByDept)
+                    : null;
+
                   // Find approved handoff date
                   const matchHandoff = handoffs
                     .filter(h => h.assetTag === asset.tag && h.status === "approved")
@@ -257,6 +278,11 @@ export const Objects = ({ globalSearchQuery = "" }) => {
                           <div className="table-person">
                             <span className="table-avatar">{holder.avatar}</span>
                             <span>{holder.name}</span>
+                          </div>
+                        ) : holderDept ? (
+                          <div className="table-person">
+                            <span className="table-avatar">{holderDept.name.slice(0, 2).toUpperCase()}</span>
+                            <span>{holderDept.name} (dept)</span>
                           </div>
                         ) : (
                           <span className="unheld-cell mono">— available</span>
@@ -322,6 +348,40 @@ export const Objects = ({ globalSearchQuery = "" }) => {
               <p style={{ fontSize: "12px", color: "var(--text-3)" }}>
                 Serial: <code className="mono">{selectedAsset.serial}</code> · Registered: <span className="mono">{selectedAsset.dateRegistered}</span>
               </p>
+            </div>
+
+            {/* Asset photo — view + upload (asset_manager only, matches backend RBAC) */}
+            <div style={{ marginBottom: "20px" }}>
+              {selectedAsset.photoUrl ? (
+                <img
+                  src={selectedAsset.photoUrl}
+                  alt={selectedAsset.name}
+                  style={{ width: "100%", maxHeight: "180px", objectFit: "cover", borderRadius: "6px", border: "1px solid var(--hairline)" }}
+                />
+              ) : (
+                <div style={{ width: "100%", height: "100px", display: "flex", alignItems: "center", justifyContent: "center", border: "1px dashed var(--hairline)", borderRadius: "6px", color: "var(--text-3)", fontSize: "11px" }}>
+                  No photo on file
+                </div>
+              )}
+              {currentUser?.roleRaw === "asset_manager" && (
+                <label style={{ display: "block", marginTop: "8px", fontSize: "11px", color: "var(--accent)", cursor: uploadingPhoto ? "default" : "pointer" }}>
+                  {uploadingPhoto ? "Uploading…" : (selectedAsset.photoUrl ? "Replace photo" : "Upload photo")}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: "none" }}
+                    disabled={uploadingPhoto}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setUploadingPhoto(true);
+                      await uploadAssetPhoto(selectedAsset.tag, file);
+                      setUploadingPhoto(false);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+              )}
             </div>
 
             {/* Lifecycle Rail (Section 6.5) */}
@@ -584,8 +644,8 @@ export const Objects = ({ globalSearchQuery = "" }) => {
                 <button type="button" className="btn" onClick={() => setShowRegisterForm(false)}>
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary">
-                  Register Asset
+                <button type="submit" className="btn btn-primary" disabled={registering}>
+                  {registering ? "Registering…" : "Register Asset"}
                 </button>
               </div>
             </form>
