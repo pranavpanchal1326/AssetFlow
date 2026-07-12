@@ -1,0 +1,193 @@
+[
+  {
+    "_comment": "--- Q4 2025 Pune HQ Audit (cycle 1, CLOSED) — All items verified ---",
+    "id": 1,
+    "cycle_id": 1,
+    "asset_id": 1,
+    "result": "verified",
+    "note": "",
+    "checked_by": 12,
+    "checked_at": "2025-12-05T10:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "cycle_id": 1,
+    "asset_id": 2,
+    "result": "verified",
+    "note": "",
+    "checked_by": 12,
+    "checked_at": "2025-12-05T10:15:00.000Z"
+  },
+  {
+    "id": 3,
+    "cycle_id": 1,
+    "asset_id": 3,
+    "result": "verified",
+    "note": "Monitor confirmed at Rajesh Iyer's workstation, Floor 2.",
+    "checked_by": 12,
+    "checked_at": "2025-12-05T10:30:00.000Z"
+  },
+  {
+    "id": 4,
+    "cycle_id": 1,
+    "asset_id": 4,
+    "result": "verified",
+    "note": "",
+    "checked_by": 7,
+    "checked_at": "2025-12-05T11:00:00.000Z"
+  },
+  {
+    "id": 5,
+    "cycle_id": 1,
+    "asset_id": 5,
+    "result": "verified",
+    "note": "",
+    "checked_by": 7,
+    "checked_at": "2025-12-05T11:15:00.000Z"
+  },
+  {
+    "id": 6,
+    "cycle_id": 1,
+    "asset_id": 6,
+    "result": "verified",
+    "note": "",
+    "checked_by": 12,
+    "checked_at": "2025-12-06T09:00:00.000Z"
+  },
+  {
+    "id": 7,
+    "cycle_id": 1,
+    "asset_id": 7,
+    "result": "verified",
+    "note": "",
+    "checked_by": 12,
+    "checked_at": "2025-12-06T09:15:00.000Z"
+  },
+  {
+    "id": 8,
+    "cycle_id": 1,
+    "asset_id": 8,
+    "result": "verified",
+    "note": "Printer operational but heavy toner usage noted. Print Bay, Floor 2.",
+    "checked_by": 7,
+    "checked_at": "2025-12-06T09:30:00.000Z"
+  },
+  {
+    "id": 9,
+    "cycle_id": 1,
+    "asset_id": 9,
+    "result": "verified",
+    "note": "",
+    "checked_by": 7,
+    "checked_at": "2025-12-06T09:45:00.000Z"
+  },
+  {
+    "id": 10,
+    "cycle_id": 1,
+    "asset_id": 10,
+    "result": "verified",
+    "note": "Rally Bar confirmed in Summit Hall. Remote in LED blinking — batteries may need replacing.",
+    "checked_by": 7,
+    "checked_at": "2025-12-06T10:00:00.000Z"
+  },
+  {
+    "id": 11,
+    "cycle_id": 1,
+    "asset_id": 11,
+    "result": "verified",
+    "note": "",
+    "checked_by": 12,
+    "checked_at": "2025-12-07T09:00:00.000Z"
+  },
+  {
+    "id": 12,
+    "cycle_id": 1,
+    "asset_id": 12,
+    "result": "verified",
+    "note": "",
+    "checked_by": 12,
+    "checked_at": "2025-12-07T09:15:00.000Z"
+  },
+  {
+    "id": 13,
+    "cycle_id": 1,
+    "asset_id": 13,
+    "result": "verified",
+    "note": "",
+    "checked_by": 7,
+    "checked_at": "2025-12-07T10:00:00.000Z"
+  },
+  {
+    "id": 14,
+    "cycle_id": 1,
+    "asset_id": 14,
+    "result": "verified",
+    "note": "MacBook Pro confirmed with Megha Joshi. Charger present. Minor lid scuff noted.",
+    "checked_by": 7,
+    "checked_at": "2025-12-07T10:15:00.000Z"
+  },
+  {
+    "_comment": "--- Q2 2026 Mumbai Branch Audit (cycle 2, OPEN) — Mix of verified, missing, damaged, pending ---",
+    "id": 15,
+    "cycle_id": 2,
+    "asset_id": 25,
+    "result": "missing",
+    "note": "Cisco switch not found at designated rack location B7. Cable connections present but unit removed. No sign of physical damage to rack or cables.",
+    "checked_by": 12,
+    "checked_at": "2026-06-05T14:30:00.000Z"
+  },
+  {
+    "id": 16,
+    "cycle_id": 2,
+    "asset_id": 28,
+    "result": "verified",
+    "note": "Meeting room Bay View confirmed. Whiteboard, markers, and HDMI cable present.",
+    "checked_by": 13,
+    "checked_at": "2026-06-04T10:00:00.000Z"
+  },
+  {
+    "id": 17,
+    "cycle_id": 2,
+    "asset_id": 29,
+    "result": "verified",
+    "note": "Dell Latitude confirmed at Farhan Sheikh's desk. Serial number matches.",
+    "checked_by": 13,
+    "checked_at": "2026-06-04T10:30:00.000Z"
+  },
+  {
+    "id": 18,
+    "cycle_id": 2,
+    "asset_id": 30,
+    "result": "damaged",
+    "note": "Monitor has a cluster of dead pixels in lower-right quadrant (approximately 15x10mm area). Still functional but display quality degraded. Recommend maintenance assessment.",
+    "checked_by": 13,
+    "checked_at": "2026-06-04T10:45:00.000Z"
+  },
+  {
+    "id": 19,
+    "cycle_id": 2,
+    "asset_id": 34,
+    "result": "verified",
+    "note": "Router in network closet, operational. Firmware version confirmed current.",
+    "checked_by": 12,
+    "checked_at": "2026-06-05T14:00:00.000Z"
+  },
+  {
+    "id": 20,
+    "cycle_id": 2,
+    "asset_id": 35,
+    "result": "verified",
+    "note": "MacBook Air confirmed with Nandini Krishnan. Good condition.",
+    "checked_by": 12,
+    "checked_at": "2026-06-05T15:00:00.000Z"
+  },
+  {
+    "id": 21,
+    "cycle_id": 2,
+    "asset_id": 19,
+    "result": "pending",
+    "note": null,
+    "checked_by": null,
+    "checked_at": null
+  }
+]

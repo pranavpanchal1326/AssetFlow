@@ -1,0 +1,182 @@
+[
+  {
+    "id": 1,
+    "name": "Arjun Mehta",
+    "email": "arjun.mehta@nexgeninfra.com",
+    "password": "Admin@123",
+    "role": "admin",
+    "department_id": 1,
+    "status": "active",
+    "created_at": "2025-06-01T09:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "name": "Kavita Sharma",
+    "email": "kavita.sharma@nexgeninfra.com",
+    "password": "Password@123",
+    "role": "dept_head",
+    "department_id": 2,
+    "status": "active",
+    "created_at": "2025-06-01T09:15:00.000Z"
+  },
+  {
+    "id": 3,
+    "name": "Rohan Kulkarni",
+    "email": "rohan.kulkarni@nexgeninfra.com",
+    "password": "Password@123",
+    "role": "dept_head",
+    "department_id": 3,
+    "status": "active",
+    "created_at": "2025-06-01T09:20:00.000Z"
+  },
+  {
+    "id": 4,
+    "name": "Sneha Patil",
+    "email": "sneha.patil@nexgeninfra.com",
+    "password": "Password@123",
+    "role": "dept_head",
+    "department_id": 4,
+    "status": "active",
+    "created_at": "2025-06-01T09:25:00.000Z"
+  },
+  {
+    "id": 5,
+    "name": "Megha Joshi",
+    "email": "megha.joshi@nexgeninfra.com",
+    "password": "Password@123",
+    "role": "dept_head",
+    "department_id": 5,
+    "status": "active",
+    "created_at": "2025-06-01T09:30:00.000Z"
+  },
+  {
+    "id": 6,
+    "name": "Vikram Desai",
+    "email": "vikram.desai@nexgeninfra.com",
+    "password": "Password@123",
+    "role": "dept_head",
+    "department_id": 6,
+    "status": "active",
+    "created_at": "2025-06-01T09:35:00.000Z"
+  },
+  {
+    "id": 7,
+    "name": "Deepak Nair",
+    "email": "deepak.nair@nexgeninfra.com",
+    "password": "Password@123",
+    "role": "asset_manager",
+    "department_id": 6,
+    "status": "active",
+    "created_at": "2025-06-01T10:00:00.000Z"
+  },
+  {
+    "id": 8,
+    "name": "Priya Deshmukh",
+    "email": "priya.deshmukh@nexgeninfra.com",
+    "password": "Password@123",
+    "role": "employee",
+    "department_id": 5,
+    "status": "active",
+    "created_at": "2025-06-01T10:15:00.000Z"
+  },
+  {
+    "id": 9,
+    "name": "Rajesh Iyer",
+    "email": "rajesh.iyer@nexgeninfra.com",
+    "password": "Password@123",
+    "role": "employee",
+    "department_id": 3,
+    "status": "active",
+    "created_at": "2025-06-01T10:20:00.000Z"
+  },
+  {
+    "id": 10,
+    "name": "Ananya Reddy",
+    "email": "ananya.reddy@nexgeninfra.com",
+    "password": "Password@123",
+    "role": "employee",
+    "department_id": 2,
+    "status": "active",
+    "created_at": "2025-06-01T10:30:00.000Z"
+  },
+  {
+    "id": 11,
+    "name": "Farhan Sheikh",
+    "email": "farhan.sheikh@nexgeninfra.com",
+    "password": "Password@123",
+    "role": "employee",
+    "department_id": 2,
+    "status": "active",
+    "created_at": "2025-06-01T10:35:00.000Z"
+  },
+  {
+    "id": 12,
+    "name": "Suman Das",
+    "email": "suman.das@nexgeninfra.com",
+    "password": "Password@123",
+    "role": "employee",
+    "department_id": 4,
+    "status": "active",
+    "created_at": "2025-06-01T10:40:00.000Z"
+  },
+  {
+    "id": 13,
+    "name": "Nandini Krishnan",
+    "email": "nandini.krishnan@nexgeninfra.com",
+    "password": "Password@123",
+    "role": "asset_manager",
+    "department_id": 6,
+    "status": "active",
+    "created_at": "2025-06-02T09:00:00.000Z"
+  },
+  {
+    "id": 14,
+    "name": "Amit Khanna",
+    "email": "amit.khanna@nexgeninfra.com",
+    "password": "Password@123",
+    "role": "employee",
+    "department_id": 2,
+    "status": "active",
+    "created_at": "2025-06-01T10:45:00.000Z"
+  },
+  {
+    "id": 15,
+    "name": "Pooja Venkatesh",
+    "email": "pooja.venkatesh@nexgeninfra.com",
+    "password": "Password@123",
+    "role": "employee",
+    "department_id": 3,
+    "status": "active",
+    "created_at": "2025-06-02T09:30:00.000Z"
+  },
+  {
+    "id": 16,
+    "name": "Karthik Bhat",
+    "email": "karthik.bhat@nexgeninfra.com",
+    "password": "Password@123",
+    "role": "employee",
+    "department_id": 6,
+    "status": "inactive",
+    "created_at": "2025-06-01T11:00:00.000Z"
+  },
+  {
+    "id": 17,
+    "name": "Lakshmi Menon",
+    "email": "lakshmi.menon@nexgeninfra.com",
+    "password": "Password@123",
+    "role": "employee",
+    "department_id": 5,
+    "status": "active",
+    "created_at": "2025-06-02T10:00:00.000Z"
+  },
+  {
+    "id": 18,
+    "name": "Tanvi Goswami",
+    "email": "tanvi.goswami@nexgeninfra.com",
+    "password": "Password@123",
+    "role": "employee",
+    "department_id": 4,
+    "status": "active",
+    "created_at": "2025-08-01T09:00:00.000Z"
+  }
+]

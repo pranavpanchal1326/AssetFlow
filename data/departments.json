@@ -1,0 +1,51 @@
+[
+  {
+    "id": 1,
+    "name": "Executive Leadership",
+    "head_user_id": 1,
+    "parent_id": null,
+    "status": "active"
+  },
+  {
+    "id": 2,
+    "name": "Engineering",
+    "head_user_id": 2,
+    "parent_id": null,
+    "status": "active"
+  },
+  {
+    "id": 3,
+    "name": "Platform Team",
+    "head_user_id": 3,
+    "parent_id": 2,
+    "status": "active"
+  },
+  {
+    "id": 4,
+    "name": "Quality Assurance",
+    "head_user_id": 4,
+    "parent_id": 2,
+    "status": "active"
+  },
+  {
+    "id": 5,
+    "name": "Human Resources",
+    "head_user_id": 5,
+    "parent_id": null,
+    "status": "active"
+  },
+  {
+    "id": 6,
+    "name": "Operations & Facilities",
+    "head_user_id": 6,
+    "parent_id": null,
+    "status": "active"
+  },
+  {
+    "id": 7,
+    "name": "Design & Surveying",
+    "head_user_id": null,
+    "parent_id": null,
+    "status": "inactive"
+  }
+]

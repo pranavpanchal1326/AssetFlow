@@ -1,0 +1,142 @@
+[
+  {
+    "_comment": "COMPLETED (past) — Kavita booked Agile Den for sprint planning, happened weeks ago",
+    "id": 1,
+    "asset_id": 26,
+    "booked_by": 2,
+    "start_time": "2026-06-16T09:00:00.000Z",
+    "end_time": "2026-06-16T11:00:00.000Z",
+    "purpose": "Sprint 14 planning — Engineering all-hands",
+    "status": "booked"
+  },
+  {
+    "_comment": "COMPLETED — Megha booked Summit Hall for company town hall",
+    "id": 2,
+    "asset_id": 27,
+    "booked_by": 5,
+    "start_time": "2026-06-20T14:00:00.000Z",
+    "end_time": "2026-06-20T16:00:00.000Z",
+    "purpose": "Q2 town hall — all-company update",
+    "status": "booked"
+  },
+  {
+    "_comment": "CANCELLED — Rajesh cancelled his Agile Den booking",
+    "id": 3,
+    "asset_id": 26,
+    "booked_by": 9,
+    "start_time": "2026-06-25T14:00:00.000Z",
+    "end_time": "2026-06-25T15:30:00.000Z",
+    "purpose": "Code review session with Platform Team",
+    "status": "cancelled"
+  },
+  {
+    "_comment": "SUCCESSFUL BOUNDARY CASE — Rohan books Agile Den 9:00-10:00 today",
+    "id": 4,
+    "asset_id": 26,
+    "booked_by": 3,
+    "start_time": "2026-07-12T09:00:00.000Z",
+    "end_time": "2026-07-12T10:00:00.000Z",
+    "purpose": "Platform Team daily standup",
+    "status": "booked"
+  },
+  {
+    "_comment": "SUCCESSFUL BACK-TO-BACK — Sneha books Agile Den 10:00-11:00 today (touches boundary of id=4, accepted)",
+    "id": 5,
+    "asset_id": 26,
+    "booked_by": 4,
+    "start_time": "2026-07-12T10:00:00.000Z",
+    "end_time": "2026-07-12T11:00:00.000Z",
+    "purpose": "QA test plan review — Sprint 16 regression scope",
+    "status": "booked"
+  },
+  {
+    "_comment": "ONGOING — Arjun has Summit Hall booked right now (today, wide window)",
+    "id": 6,
+    "asset_id": 27,
+    "booked_by": 1,
+    "start_time": "2026-07-12T08:30:00.000Z",
+    "end_time": "2026-07-12T12:30:00.000Z",
+    "purpose": "Board of Directors quarterly review — confidential",
+    "status": "booked"
+  },
+  {
+    "_comment": "UPCOMING — Priya booked Bay View (Mumbai) for tomorrow",
+    "id": 7,
+    "asset_id": 28,
+    "booked_by": 8,
+    "start_time": "2026-07-13T11:00:00.000Z",
+    "end_time": "2026-07-13T12:00:00.000Z",
+    "purpose": "Remote interview — Senior Civil Engineer candidate",
+    "status": "booked"
+  },
+  {
+    "_comment": "COMPLETED — Toyota Innova booked for Kavita's site visit",
+    "id": 8,
+    "asset_id": 22,
+    "booked_by": 2,
+    "start_time": "2025-09-01T09:00:00.000Z",
+    "end_time": "2025-09-01T17:00:00.000Z",
+    "purpose": "Client site inspection — Wagholi bridge project",
+    "status": "booked"
+  },
+  {
+    "_comment": "COMPLETED — Farhan booked Innova for Mumbai site survey",
+    "id": 9,
+    "asset_id": 22,
+    "booked_by": 11,
+    "start_time": "2025-10-15T08:00:00.000Z",
+    "end_time": "2025-10-15T18:00:00.000Z",
+    "purpose": "Preliminary survey — Navi Mumbai flyover foundations",
+    "status": "booked"
+  },
+  {
+    "_comment": "COMPLETED — Ananya booked Innova for client visit",
+    "id": 10,
+    "asset_id": 22,
+    "booked_by": 10,
+    "start_time": "2026-05-12T09:00:00.000Z",
+    "end_time": "2026-05-12T17:00:00.000Z",
+    "purpose": "Structural assessment visit — Hinjewadi IT Park Phase 3",
+    "status": "booked"
+  },
+  {
+    "_comment": "UPCOMING — Bolero booked for tomorrow's site visit",
+    "id": 11,
+    "asset_id": 21,
+    "booked_by": 10,
+    "start_time": "2026-07-13T08:00:00.000Z",
+    "end_time": "2026-07-13T18:00:00.000Z",
+    "purpose": "Soil testing site visit — Kharadi residential project",
+    "status": "booked"
+  },
+  {
+    "_comment": "UPCOMING — Projector booked for next week client presentation",
+    "id": 12,
+    "asset_id": 23,
+    "booked_by": 2,
+    "start_time": "2026-07-15T14:00:00.000Z",
+    "end_time": "2026-07-15T16:00:00.000Z",
+    "purpose": "Client presentation — Pune Metro Phase 2 proposal review",
+    "status": "booked"
+  },
+  {
+    "_comment": "BOOKING TODAY for heatmap — Agile Den afternoon slot",
+    "id": 13,
+    "asset_id": 26,
+    "booked_by": 14,
+    "start_time": "2026-07-12T14:00:00.000Z",
+    "end_time": "2026-07-12T15:30:00.000Z",
+    "purpose": "Engineering sync — concrete mix design review",
+    "status": "booked"
+  },
+  {
+    "_comment": "BOOKING TODAY for heatmap — Summit Hall afternoon (after board meeting ends)",
+    "id": 14,
+    "asset_id": 27,
+    "booked_by": 5,
+    "start_time": "2026-07-12T14:00:00.000Z",
+    "end_time": "2026-07-12T15:00:00.000Z",
+    "purpose": "HR policy review — updated leave guidelines",
+    "status": "booked"
+  }
+]

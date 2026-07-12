@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "cycle_id": 1,
+    "auditor_user_id": 12
+  },
+  {
+    "id": 2,
+    "cycle_id": 1,
+    "auditor_user_id": 7
+  },
+  {
+    "id": 3,
+    "cycle_id": 2,
+    "auditor_user_id": 12
+  },
+  {
+    "id": 4,
+    "cycle_id": 2,
+    "auditor_user_id": 13
+  }
+]

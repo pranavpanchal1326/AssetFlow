@@ -1,0 +1,67 @@
+[
+  {
+    "id": 1,
+    "name": "Electronics — Laptops",
+    "description": "Portable computing devices issued to individual employees",
+    "custom_fields": [
+      { "name": "warranty_expiry", "type": "date", "label": "Warranty Expiry Date", "required": true },
+      { "name": "ram_gb", "type": "number", "label": "RAM (GB)", "required": false },
+      { "name": "processor", "type": "text", "label": "Processor Model", "required": false }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Electronics — Peripherals",
+    "description": "Monitors, keyboards, mice, webcams, and other peripheral devices",
+    "custom_fields": [
+      { "name": "warranty_expiry", "type": "date", "label": "Warranty Expiry Date", "required": true },
+      { "name": "connector_type", "type": "text", "label": "Connector Type (HDMI/USB-C/DP)", "required": false }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Networking Equipment",
+    "description": "Routers, managed switches, wireless access points, and firewalls",
+    "custom_fields": [
+      { "name": "firmware_version", "type": "text", "label": "Firmware Version", "required": false },
+      { "name": "port_count", "type": "number", "label": "Number of Ports", "required": false }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Office Furniture & Rooms",
+    "description": "Conference rooms, meeting rooms, desks, and ergonomic furniture",
+    "custom_fields": [
+      { "name": "capacity", "type": "number", "label": "Seating Capacity", "required": false },
+      { "name": "floor", "type": "text", "label": "Floor / Wing", "required": false }
+    ]
+  },
+  {
+    "id": 5,
+    "name": "Vehicles",
+    "description": "Company-owned vehicles for site visits and inter-office transit",
+    "custom_fields": [
+      { "name": "registration_number", "type": "text", "label": "Registration Number", "required": true },
+      { "name": "insurance_expiry", "type": "date", "label": "Insurance Expiry Date", "required": true },
+      { "name": "fuel_type", "type": "text", "label": "Fuel Type", "required": false }
+    ]
+  },
+  {
+    "id": 6,
+    "name": "Printing & Imaging",
+    "description": "Printers, scanners, plotters, and projectors",
+    "custom_fields": [
+      { "name": "cartridge_type", "type": "text", "label": "Cartridge / Toner Model", "required": false },
+      { "name": "resolution", "type": "text", "label": "Max Resolution", "required": false }
+    ]
+  },
+  {
+    "id": 7,
+    "name": "Mobile Devices",
+    "description": "Tablets, smartphones, and biometric attendance devices",
+    "custom_fields": [
+      { "name": "imei", "type": "text", "label": "IMEI Number", "required": true },
+      { "name": "os_version", "type": "text", "label": "OS Version", "required": false }
+    ]
+  }
+]
