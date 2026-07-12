@@ -218,5 +218,55 @@
     "entity_ref": "booking:7",
     "is_read": false,
     "created_at": "2026-07-11T16:00:00.000Z"
+  },
+  {
+    "id": 23,
+    "user_id": 13,
+    "type": "audit_assigned",
+    "title": "Audit Assignment — Q2 2026 Mumbai Branch",
+    "body": "You have been assigned as an auditor for the Q2 2026 — Mumbai Branch Audit cycle (01 Jun – 30 Jun 2026). Please begin verifying assigned assets.",
+    "entity_ref": "audit:2",
+    "is_read": true,
+    "created_at": "2026-06-01T09:06:00.000Z"
+  },
+  {
+    "id": 24,
+    "user_id": 2,
+    "type": "transfer_approved",
+    "title": "Asset Transferred — Webcam AF-0032",
+    "body": "Logitech C920 HD Webcam (AF-0032) has been transferred from you to Executive Leadership department for Summit Hall use. Approved by Deepak Nair.",
+    "entity_ref": "transfer:4",
+    "is_read": true,
+    "created_at": "2026-04-05T11:01:00.000Z"
+  },
+  {
+    "id": 25,
+    "user_id": 3,
+    "type": "transfer_approved",
+    "title": "Transfer Approved — Webcam AF-0032",
+    "body": "Your transfer request for Logitech C920 HD Webcam (AF-0032), previously held by Kavita Sharma, has been approved by Deepak Nair. The asset is now allocated to Executive Leadership.",
+    "entity_ref": "transfer:4",
+    "is_read": true,
+    "created_at": "2026-04-05T11:02:00.000Z"
+  },
+  {
+    "id": 26,
+    "user_id": 8,
+    "type": "maintenance_approved",
+    "title": "Maintenance Request Approved — Epson Printer AF-0009",
+    "body": "Your maintenance request for Epson EcoTank L3250 Printer (AF-0009) has been approved by Deepak Nair. The asset has been placed Under Maintenance.",
+    "entity_ref": "maintenance:4",
+    "is_read": true,
+    "created_at": "2026-07-06T09:01:00.000Z"
+  },
+  {
+    "id": 27,
+    "user_id": 3,
+    "type": "maintenance_approved",
+    "title": "Maintenance Request Approved — Server AF-0011",
+    "body": "Your maintenance request for Dell PowerEdge T150 Server (AF-0011) has been approved by Deepak Nair. Technician assigned: Dell ProSupport (Case #SR1847293). The asset has been placed Under Maintenance.",
+    "entity_ref": "maintenance:7",
+    "is_read": false,
+    "created_at": "2026-07-09T09:01:00.000Z"
   }
 ]
