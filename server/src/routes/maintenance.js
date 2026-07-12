@@ -18,7 +18,8 @@ const ACTIONS = {
   reject:  { from: ['pending'], to: 'rejected' },
   assign:  { from: ['approved', 'assigned'], to: 'assigned' },
   start:   { from: ['assigned'], to: 'in_progress' },
-  resolve: { from: ['in_progress', 'assigned', 'approved'], to: 'resolved' },
+  // Require the request to be at least assigned before it can be resolved.
+  resolve: { from: ['in_progress', 'assigned'], to: 'resolved' },
 };
 
 function shape(m) {
@@ -99,10 +100,18 @@ router.put('/:id', requireAuth, requireRole('asset_manager'), (req, res) => {
     return res.status(400).json({ ok: false, error: 'technicianName is required to assign' });
   }
 
-  // Asset side-effects: approve → Under Maintenance, resolve → Available.
+  // Asset side-effects: approve → Under Maintenance; resolve → Available, then
+  // back to Allocated if the asset was still allocated to a holder (repaired in place).
   try {
-    if (action === 'approve') transitionAsset(m.asset_id, 'Under Maintenance', req.user.id, 'Maintenance approved');
-    if (action === 'resolve') transitionAsset(m.asset_id, 'Available', req.user.id, 'Maintenance resolved');
+    if (action === 'approve') {
+      transitionAsset(m.asset_id, 'Under Maintenance', req.user.id, 'Maintenance approved');
+    }
+    if (action === 'resolve') {
+      transitionAsset(m.asset_id, 'Available', req.user.id, 'Maintenance resolved');
+      if (activeAllocation(m.asset_id)) {
+        transitionAsset(m.asset_id, 'Allocated', req.user.id, 'Returned to holder after maintenance');
+      }
+    }
   } catch (err) {
     if (err instanceof TransitionError) {
       return res.status(400).json({ ok: false, error: `Asset status cannot change: ${err.message}` });

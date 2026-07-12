@@ -45,6 +45,13 @@ router.post('/', requireAuth, (req, res) => {
   if (!toUserId && !toDepartmentId) {
     return res.status(400).json({ ok: false, error: 'A transfer target (user or department) is required' });
   }
+  // Validate the target exists up front.
+  if (toUserId && !db.prepare('SELECT 1 FROM users WHERE id = ?').get(toUserId)) {
+    return res.status(400).json({ ok: false, error: 'Transfer target user not found' });
+  }
+  if (toDepartmentId && !db.prepare('SELECT 1 FROM departments WHERE id = ?').get(toDepartmentId)) {
+    return res.status(400).json({ ok: false, error: 'Transfer target department not found' });
+  }
   const current = activeAllocation(assetId);
   if (!current) {
     return res.status(400).json({ ok: false, error: 'Asset is not currently allocated — allocate it directly instead' });
@@ -88,15 +95,23 @@ router.put('/:id', requireAuth, requireRole('asset_manager', 'dept_head'), (req,
     return res.json({ ok: true, data: shape(db.prepare('SELECT * FROM transfer_requests WHERE id = ?').get(t.id)) });
   }
 
-  // Approve → close the old allocation, create the new one, re-allocate (history updated).
+  // Re-validate the target still exists (it could have been removed since the request).
+  if (t.to_user_id && !db.prepare('SELECT 1 FROM users WHERE id = ?').get(t.to_user_id)) {
+    return res.status(400).json({ ok: false, error: 'Transfer target user no longer exists' });
+  }
+  if (t.to_department_id && !db.prepare('SELECT 1 FROM departments WHERE id = ?').get(t.to_department_id)) {
+    return res.status(400).json({ ok: false, error: 'Transfer target department no longer exists' });
+  }
+  // The asset must still be allocated (it may have been returned since the request).
   const current = activeAllocation(t.asset_id);
+  if (!current) {
+    return res.status(400).json({ ok: false, error: 'Asset is no longer allocated — this transfer request is stale' });
+  }
   const tx = db.transaction(() => {
-    if (current) {
-      db.prepare(
-        `UPDATE allocations SET status = 'returned', returned_at = datetime('now'),
-           return_condition_notes = 'Transferred' WHERE id = ?`
-      ).run(current.id);
-    }
+    db.prepare(
+      `UPDATE allocations SET status = 'returned', returned_at = datetime('now'),
+         return_condition_notes = 'Transferred' WHERE id = ?`
+    ).run(current.id);
     // Allocated → Allocated transfer transition (writes asset_history).
     transitionAsset(t.asset_id, 'Allocated', req.user.id, 'Transferred');
     db.prepare(

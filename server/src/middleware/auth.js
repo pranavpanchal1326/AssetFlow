@@ -2,6 +2,13 @@
 const jwt = require('jsonwebtoken');
 const db = require('../db');
 
+if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
+  throw new Error('JWT_SECRET must be set in production (see server/.env.example)');
+}
+if (!process.env.JWT_SECRET) {
+  // eslint-disable-next-line no-console
+  console.warn('⚠ JWT_SECRET is not set — using an insecure development fallback. Set it in server/.env for real use.');
+}
 const JWT_SECRET = process.env.JWT_SECRET || 'assetflow-dev-secret-change-me';
 const JWT_EXPIRES = '7d';
 
