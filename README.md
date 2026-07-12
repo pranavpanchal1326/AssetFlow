@@ -203,8 +203,8 @@ assetflow/
 
 ```bash
 # Clone the repository
-git clone https://github.com/<your-org>/assetflow.git
-cd assetflow
+git clone https://github.com/pranavpanchal1326/AssetFlow.git
+cd AssetFlow
 
 # Install backend dependencies
 cd server
