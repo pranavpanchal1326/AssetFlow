@@ -1,4 +1,4 @@
-<![CDATA[# AssetFlow
+# AssetFlow
 
 **Enterprise Asset & Resource Management System**
 
@@ -510,4 +510,4 @@ Built for Hackathon Round 1 (10-hour build constraint). The seed data represents
 **DN-README-02:** Notification and activity log record counts (27 notifications, 69 activity logs) reflect the post-engineering-review totals after 5 notifications and 3 activity logs were added to close coverage gaps identified during the seed data validation. See `docs/SEED_DATA_REVIEW.md` for the detailed audit trail.
 
 **DN-README-03:** The PRD defines booking statuses as `booked | cancelled` in the database, with `Upcoming`, `Ongoing`, and `Completed` derived at read time from time comparison. The seed data correctly stores only the two persisted statuses.
-]]>
+
