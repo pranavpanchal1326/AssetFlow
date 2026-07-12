@@ -1,16 +1,17 @@
 import React, { useContext, useState } from "react";
 import { AppContext } from "../context/AppContext";
 import { StampedTag } from "../components/StampedTag";
-import { Wrench, Plus, ArrowRight, ArrowLeft, Check, X, AlertCircle } from "lucide-react";
+import { Wrench, Plus, ArrowRight, Check, X, AlertCircle } from "lucide-react";
 
 export const Care = () => {
-  const { 
-    careTickets, 
-    assets, 
-    employees, 
-    addCareTicket, 
+  const {
+    careTickets,
+    assets,
+    employees,
+    addCareTicket,
     updateCareTicketStatus,
-    currentUser 
+    currentUser,
+    pushToast
   } = useContext(AppContext);
 
   // States
@@ -18,25 +19,34 @@ export const Care = () => {
   const [selectedAssetTag, setSelectedAssetTag] = useState("");
   const [issueText, setIssueText] = useState("");
   const [priority, setPriority] = useState("normal");
+  const [issuePhoto, setIssuePhoto] = useState(null);
+  const [submittingTicket, setSubmittingTicket] = useState(false);
 
   const isManagerOrAdmin = ["Admin", "Manager"].includes(currentUser?.role);
+  // Only asset_manager may progress a maintenance ticket through the workflow server-side.
+  const canProgressTickets = currentUser?.roleRaw === "asset_manager";
 
   // Submit Care ticket
-  const handleSubmitTicket = (e) => {
+  const handleSubmitTicket = async (e) => {
     e.preventDefault();
     if (!selectedAssetTag || !issueText) return;
 
-    addCareTicket({
+    setSubmittingTicket(true);
+    const res = await addCareTicket({
       assetTag: selectedAssetTag,
       issue: issueText,
       priority
-    });
+    }, issuePhoto);
+    setSubmittingTicket(false);
 
+    if (!res.success) return;
+
+    pushToast("Maintenance ticket raised — status set to Pending.", "success");
     setSelectedAssetTag("");
     setIssueText("");
     setPriority("normal");
+    setIssuePhoto(null);
     setShowReportForm(false);
-    alert("Ticket raised successfully. Status set to PENDING.");
   };
 
   // Kanban column titles & keys
@@ -129,29 +139,26 @@ export const Care = () => {
                           )}
                         </div>
 
-                        {/* Control buttons for moving ticket along column */}
-                        <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid var(--hairline-2)", marginTop: "12px", paddingTop: "8px" }}>
-                          {col.key !== "pending" ? (
-                            <button 
-                              className="btn btn-small"
-                              onClick={() => moveTicket(ticket.id, ticket.status, "backward")}
-                              style={{ border: "none", background: "none", padding: "4px" }}
-                              title="Move back"
-                            >
-                              <ArrowLeft size={13} />
-                            </button>
-                          ) : <div />}
-
+                        {/* Control buttons for moving ticket along column.
+                            Backward moves have no backend equivalent (one-way workflow),
+                            so only the forward action is offered, and only to asset managers. */}
+                        <div style={{ display: "flex", justifyContent: "flex-end", borderTop: "1px solid var(--hairline-2)", marginTop: "12px", paddingTop: "8px" }}>
                           {col.key !== "resolved" ? (
-                            <button 
-                              className="btn btn-small"
-                              onClick={() => moveTicket(ticket.id, ticket.status, "forward")}
-                              style={{ border: "none", background: "none", padding: "4px", color: "var(--accent)" }}
-                              title="Advance state"
-                            >
-                              <span>Next</span>
-                              <ArrowRight size={13} />
-                            </button>
+                            canProgressTickets ? (
+                              <button
+                                className="btn btn-small"
+                                onClick={() => moveTicket(ticket.id, ticket.status, "forward")}
+                                style={{ border: "none", background: "none", padding: "4px", color: "var(--accent)" }}
+                                title="Advance state"
+                              >
+                                <span>Next</span>
+                                <ArrowRight size={13} />
+                              </button>
+                            ) : (
+                              <span style={{ fontSize: "10px", color: "var(--text-3)", fontStyle: "italic" }}>
+                                Asset manager action
+                              </span>
+                            )
                           ) : (
                             <span className="mono" style={{ fontSize: "10px", color: "var(--available)", fontWeight: "600", display: "flex", alignItems: "center", gap: "2px" }}>
                               <Check size={10} /> Resolved
@@ -176,7 +183,7 @@ export const Care = () => {
           <div className="modal-content" style={{ maxWidth: "480px" }}>
             <div className="modal-header">
               <h3 className="modal-title">Report Faulty Asset</h3>
-              <button onClick={() => setShowReportForm(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "18px" }}>
+              <button type="button" onClick={() => setShowReportForm(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "18px" }}>
                 ×
               </button>
             </div>
@@ -226,9 +233,19 @@ export const Care = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Upload Diagnostic Photo (Mock)</label>
-                  <input type="file" className="form-control" style={{ fontSize: "11px" }} disabled />
-                  <span style={{ fontSize: "10.5px", color: "var(--text-3)", marginTop: "4px", display: "block" }}>File uploads disabled in sandboxed demo environment.</span>
+                  <label>Upload Diagnostic Photo (optional)</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="form-control"
+                    style={{ fontSize: "11px" }}
+                    onChange={(e) => setIssuePhoto(e.target.files?.[0] || null)}
+                  />
+                  {issuePhoto && (
+                    <span style={{ fontSize: "10.5px", color: "var(--text-3)", marginTop: "4px", display: "block" }}>
+                      {issuePhoto.name} ({Math.round(issuePhoto.size / 1024)} KB)
+                    </span>
+                  )}
                 </div>
 
               </div>
@@ -236,8 +253,8 @@ export const Care = () => {
                 <button type="button" className="btn" onClick={() => setShowReportForm(false)}>
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary">
-                  Submit Maintenance Report
+                <button type="submit" className="btn btn-primary" disabled={submittingTicket}>
+                  {submittingTicket ? "Submitting…" : "Submit Maintenance Report"}
                 </button>
               </div>
             </form>

@@ -1,14 +1,52 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { AppContext } from "../context/AppContext";
 import { StampedTag } from "../components/StampedTag";
 import { Download, AlertTriangle } from "lucide-react";
+import { reportsApi } from "../api/client";
+
+// UI report titles -> the backend's actual report names (server/src/routes/reports.js).
+const REPORT_EXPORT_NAMES = {
+  "Category Utilization": "utilization",
+  "Maintenance Frequency": "maintenance-frequency",
+  "Departmental Allocations": "department-summary",
+  "Booking Heatmap": "booking-heatmap",
+};
 
 export const Reports = () => {
   const { assets, careTickets, departments, employees, bookings, categories } = useContext(AppContext);
+  const [exportError, setExportError] = useState("");
 
-  // Mocks CSV Downloader
-  const downloadCSV = (title) => {
-    alert(`CSV Download initiated for [${title}] — Security verified.`);
+  // Real CSV export via the backend's authenticated /reports/:name/export routes.
+  // "Overdue Returns" has no backend report of its own — build its CSV client-side
+  // from the data already on screen instead of pretending to export it.
+  const downloadCSV = async (title) => {
+    setExportError("");
+    try {
+      const backendName = REPORT_EXPORT_NAMES[title];
+      if (backendName) {
+        await reportsApi.downloadCsv(backendName);
+        return;
+      }
+      if (title === "Overdue Returns") {
+        const header = "Tag,Asset Name,Category,Current Holder,Overdue Since,Asset Cost";
+        const rows = overdueList.map(a => {
+          const holder = employees.find(e => e.id === a.heldBy);
+          return [a.tag, a.name, a.category, holder?.name || "", a.overdueSince || "", a.cost || 0]
+            .map(v => `"${String(v).replace(/"/g, '""')}"`).join(",");
+        });
+        const blob = new Blob([[header, ...rows].join("\n")], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "overdue-returns.csv";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      setExportError(err.message || "Export failed");
+    }
   };
 
   // Helper calculations
@@ -45,7 +83,10 @@ export const Reports = () => {
 
   assets.forEach(a => {
     const holder = employees.find(e => e.id === a.heldBy);
-    const deptName = holder ? holder.dept : "Unassigned";
+    // Held directly by a department (no individual holder) still counts against
+    // that department — previously these silently fell into "Unassigned".
+    const holderDept = !holder && a.heldByDept ? departments.find(d => d.id === a.heldByDept) : null;
+    const deptName = holder ? holder.dept : holderDept ? holderDept.name : "Unassigned";
     if (!deptAllocations[deptName]) {
       deptAllocations[deptName] = { count: 0, value: 0 };
     }
@@ -60,17 +101,19 @@ export const Reports = () => {
   const heatmapHours = ["09:00", "11:00", "13:00", "15:00", "17:00"];
   const heatmapDays = ["Mon", "Tue", "Wed", "Thu", "Fri"];
   
+  // Real counts from booking data: dayIdx 0=Mon..4=Fri, bucketed to the nearest
+  // 2-hour slot in heatmapHours starting at 09:00.
   const getBookingCount = (dayIdx, hourIdx) => {
-    // Return mock intensity count
-    // (In real app, we parse booking start/end times and check overlaps. We mock it for beautiful visual display)
-    const values = [
-      [2, 0, 1, 1, 0],
-      [1, 3, 0, 2, 1],
-      [0, 1, 2, 0, 0],
-      [1, 0, 1, 3, 2],
-      [3, 2, 0, 1, 1]
-    ];
-    return values[dayIdx]?.[hourIdx] || 0;
+    const bucketStartHour = parseInt(heatmapHours[hourIdx], 10);
+    return bookings.filter(b => {
+      if (b.status !== "approved") return false;
+      const start = new Date(b.startTime);
+      const jsDay = start.getDay(); // 0=Sun..6=Sat
+      const mondayIndexedDay = jsDay === 0 ? 6 : jsDay - 1; // 0=Mon..6=Sun
+      if (mondayIndexedDay !== dayIdx) return false;
+      const hour = start.getHours();
+      return hour >= bucketStartHour && hour < bucketStartHour + 2;
+    }).length;
   };
 
   const getHeatmapColor = (count) => {
@@ -82,7 +125,13 @@ export const Reports = () => {
 
   return (
     <div>
-      
+      {exportError && (
+        <div className="consequence-warning-box" style={{ marginBottom: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span>{exportError}</span>
+          <button onClick={() => setExportError("")} style={{ background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}>Dismiss</button>
+        </div>
+      )}
+
       {/* 1. First Row: Category Utilization & Maintenance Frequency */}
       <div className="grid-2" style={{ marginBottom: "24px" }}>
         

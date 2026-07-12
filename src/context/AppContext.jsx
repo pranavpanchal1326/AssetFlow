@@ -1,604 +1,734 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useEffect, useCallback } from "react";
 import {
-  initialEmployees,
-  initialCategories,
-  initialAssets,
-  initialDepartments,
-  initialHandoffs,
-  initialBookings,
-  initialCareTickets,
-  initialAudits,
-  initialLedger
-} from "../db/mockData";
+  authApi, setToken, getToken,
+  assetsApi, departmentsApi, categoriesApi, usersApi,
+  allocationsApi, transfersApi, bookingsApi, maintenanceApi,
+  auditsApi, notificationsApi,
+} from "../api/client";
 
 export const AppContext = createContext();
 
+// ---------------------------------------------------------------------------
+// Mapping layer: backend shapes (capitalized enums, numeric ids, holder_user_id
+// style fields) <-> the frontend shape the existing screens already expect
+// (lowercase statuses, `tag` as the asset key, `heldBy`, `dept` as a name, etc).
+// ---------------------------------------------------------------------------
+
+const ROLE_BACKEND_TO_UI = { admin: "Admin", asset_manager: "Manager", dept_head: "Manager", employee: "Employee" };
+const ROLE_UI_TO_BACKEND = { Admin: "admin", Manager: "asset_manager", Employee: "employee" };
+
+const ASSET_STATUS_TO_UI = {
+  Available: "available",
+  Allocated: "allocated",
+  Reserved: "reserved",
+  "Under Maintenance": "maint",
+  Lost: "alert",
+  Retired: "disposed",
+  Disposed: "disposed",
+};
+const ASSET_STATUS_TO_BACKEND = {
+  available: "Available",
+  allocated: "Allocated",
+  reserved: "Reserved",
+  maint: "Under Maintenance",
+  alert: "Lost",
+  disposed: "Disposed",
+  registered: "Available",
+};
+
+const CONDITION_TO_UI = { New: "excellent", Good: "good", Fair: "fair", Poor: "poor" };
+const CONDITION_TO_BACKEND = { excellent: "New", good: "Good", fair: "Fair", poor: "Poor" };
+
+function initials(name = "") {
+  return name.split(" ").map((w) => w[0]).filter(Boolean).join("").toUpperCase().slice(0, 2) || "AF";
+}
+
 export const AppProvider = ({ children }) => {
-  // Load initial data from LocalStorage or seed defaults
-  const [employees, setEmployees] = useState(() => {
-    const data = localStorage.getItem("af_employees");
-    return data ? JSON.parse(data) : initialEmployees;
-  });
+  const [employees, setEmployees] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [assets, setAssets] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [handoffs, setHandoffs] = useState([]);
+  const [bookings, setBookings] = useState([]);
+  const [careTickets, setCareTickets] = useState([]);
+  const [audits, setAudits] = useState([]);
+  const [ledger, setLedger] = useState([]);
 
-  const [categories, setCategories] = useState(() => {
-    const data = localStorage.getItem("af_categories");
-    return data ? JSON.parse(data) : initialCategories;
-  });
-
-  const [assets, setAssets] = useState(() => {
-    const data = localStorage.getItem("af_assets");
-    return data ? JSON.parse(data) : initialAssets;
-  });
-
-  const [departments, setDepartments] = useState(() => {
-    const data = localStorage.getItem("af_departments");
-    return data ? JSON.parse(data) : initialDepartments;
-  });
-
-  const [handoffs, setHandoffs] = useState(() => {
-    const data = localStorage.getItem("af_handoffs");
-    return data ? JSON.parse(data) : initialHandoffs;
-  });
-
-  const [bookings, setBookings] = useState(() => {
-    const data = localStorage.getItem("af_bookings");
-    return data ? JSON.parse(data) : initialBookings;
-  });
-
-  const [careTickets, setCareTickets] = useState(() => {
-    const data = localStorage.getItem("af_care_tickets");
-    return data ? JSON.parse(data) : initialCareTickets;
-  });
-
-  const [audits, setAudits] = useState(() => {
-    const data = localStorage.getItem("af_audits");
-    return data ? JSON.parse(data) : initialAudits;
-  });
-
-  const [ledger, setLedger] = useState(() => {
-    const data = localStorage.getItem("af_ledger");
-    return data ? JSON.parse(data) : initialLedger;
-  });
-
-  // Current logged in user (null = landing page)
-  const [currentUser, setCurrentUser] = useState(() => {
-    const data = localStorage.getItem("af_current_user");
-    return data ? JSON.parse(data) : null;
-  });
-
-  // Active view switching inside app
+  const [currentUser, setCurrentUser] = useState(null);
   const [currentView, setCurrentView] = useState("Now");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [booting, setBooting] = useState(true);
 
-  // Save changes to localStorage
-  useEffect(() => {
-    localStorage.setItem("af_employees", JSON.stringify(employees));
-  }, [employees]);
+  // ---- Toasts (in-app, non-blocking — replaces native alert() popups) --------
+  const [toasts, setToasts] = useState([]);
+  const dismissToast = useCallback((id) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+  const pushToast = useCallback((message, type = "info") => {
+    const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => dismissToast(id), 4500);
+  }, [dismissToast]);
 
+  // ---- Theme (global, persisted — used on Landing, Login, and the app shell) --
+  const [theme, setTheme] = useState(() => localStorage.getItem("af_theme") || "dark");
   useEffect(() => {
-    localStorage.setItem("af_categories", JSON.stringify(categories));
+    document.body.setAttribute("data-theme", theme);
+    localStorage.setItem("af_theme", theme);
+  }, [theme]);
+  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
+
+  // ---- Shapers -------------------------------------------------------
+
+  const shapeEmployee = useCallback((u) => ({
+    id: u.id,
+    name: u.name,
+    email: u.email,
+    role: ROLE_BACKEND_TO_UI[u.role] || "Employee",
+    roleRaw: u.role,
+    departmentId: u.departmentId,
+    dept: departments.find((d) => d.rawId === u.departmentId)?.name
+      || departments.find((d) => d.id === u.departmentId)?.name
+      || "Unassigned",
+    avatar: initials(u.name),
+    status: u.status,
+  }), [departments]);
+
+  const shapeDepartment = useCallback((d) => ({
+    id: d.id,
+    rawId: d.id,
+    name: d.name,
+    headEmployeeId: d.headUserId,
+    parentId: d.parentId,
+    status: d.status || "active",
+  }), []);
+
+  // Seed data (data/categories.json) stores custom field definitions keyed by
+  // "name", but the UI (and newly-created categories from Setup) key them by
+  // "key". Normalize here so every consumer can rely on field.key existing
+  // and being unique — this was also the source of a React duplicate-key
+  // warning on the Objects screen (every field fell back to the same
+  // undefined key).
+  const shapeCategory = useCallback((c) => ({
+    id: c.id,
+    name: c.name,
+    description: c.description,
+    customFields: (c.customFields || []).map((f, i) => ({
+      key: f.key || f.name || `field_${i}`,
+      label: f.label || f.key || f.name || `Field ${i + 1}`,
+      type: f.type || "text",
+    })),
+  }), []);
+
+  // assets need allocation data merged in (heldBy / overdueSince)
+  const shapeAsset = useCallback((a, allocByAsset, categoriesList) => {
+    const alloc = allocByAsset ? allocByAsset[a.id] : null;
+    const cat = (categoriesList || categories).find((c) => c.id === a.categoryId);
+    return {
+      id: a.id,
+      tag: a.tag,
+      name: a.name,
+      categoryId: a.categoryId,
+      category: cat ? cat.name : "Uncategorized",
+      serial: a.serialNo || "",
+      status: ASSET_STATUS_TO_UI[a.status] || "available",
+      statusRaw: a.status,
+      heldBy: alloc ? alloc.holderUserId : null,
+      heldByDept: alloc ? alloc.holderDepartmentId : null,
+      location: a.location || "",
+      condition: CONDITION_TO_UI[a.condition] || "good",
+      bookable: !!a.isBookable,
+      cost: a.acquisitionCost || 0,
+      dateRegistered: (a.acquisitionDate || a.createdAt || "").slice(0, 10),
+      customFields: a.customValues || {},
+      overdueSince: alloc && alloc.overdue ? alloc.expectedReturnDate : null,
+      activeAllocationId: alloc ? alloc.id : null,
+      photoUrl: a.photoUrl || null,
+    };
   }, [categories]);
 
-  useEffect(() => {
-    localStorage.setItem("af_assets", JSON.stringify(assets));
-  }, [assets]);
+  const shapeBooking = useCallback((b) => ({
+    id: b.id,
+    assetTag: assets.find((a) => a.id === b.assetId)?.tag || String(b.assetId),
+    assetId: b.assetId,
+    employeeId: b.bookedBy,
+    startTime: b.startTime,
+    endTime: b.endTime,
+    status: b.cancelled ? "cancelled" : "approved",
+  }), [assets]);
 
-  useEffect(() => {
-    localStorage.setItem("af_departments", JSON.stringify(departments));
-  }, [departments]);
+  const shapeCareTicket = useCallback((m) => ({
+    id: m.id,
+    assetTag: assets.find((a) => a.id === m.assetId)?.tag || String(m.assetId),
+    assetId: m.assetId,
+    issue: m.issue,
+    priority: (m.priority || "Medium").toLowerCase() === "high" ? "high" : "normal",
+    priorityRaw: m.priority,
+    status: m.status === "pending" ? "pending"
+      : m.status === "approved" ? "assigned"
+      : m.status === "assigned" ? "assigned"
+      : m.status === "in_progress" ? "in_progress"
+      : m.status === "resolved" ? "resolved"
+      : m.status === "rejected" ? "resolved"
+      : "pending",
+    statusRaw: m.status,
+    assigneeId: null,
+    date: m.createdAt,
+  }), [assets]);
 
-  useEffect(() => {
-    localStorage.setItem("af_handoffs", JSON.stringify(handoffs));
-  }, [handoffs]);
+  // ---- Fetch-all ------------------------------------------------------
 
-  useEffect(() => {
-    localStorage.setItem("af_bookings", JSON.stringify(bookings));
-  }, [bookings]);
+  const findAssetTag = (assetId, assetList) => (assetList || assets).find((a) => a.id === assetId)?.tag || String(assetId);
 
-  useEffect(() => {
-    localStorage.setItem("af_care_tickets", JSON.stringify(careTickets));
-  }, [careTickets]);
+  const refreshAll = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [deptsRaw, catsRaw, usersRaw, assetsRaw, allocsRaw, transfersRaw, bookingsRaw, maintRaw, auditsRaw, notifsRaw] =
+        await Promise.all([
+          departmentsApi.list(),
+          categoriesApi.list(),
+          usersApi.list(),
+          assetsApi.list(),
+          allocationsApi.list(),
+          transfersApi.list(),
+          bookingsApi.list(),
+          maintenanceApi.list(),
+          auditsApi.list(),
+          notificationsApi.list(),
+        ]);
 
-  useEffect(() => {
-    localStorage.setItem("af_audits", JSON.stringify(audits));
-  }, [audits]);
+      const depts = deptsRaw.map(shapeDepartment);
+      const cats = catsRaw.map(shapeCategory);
 
-  useEffect(() => {
-    localStorage.setItem("af_ledger", JSON.stringify(ledger));
-  }, [ledger]);
+      const allocByAsset = {};
+      for (const al of allocsRaw) {
+        if (al.status === "active") allocByAsset[al.assetId] = al;
+      }
+      const assetsShaped = assetsRaw.map((a) => shapeAsset(a, allocByAsset, cats));
 
-  useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem("af_current_user", JSON.stringify(currentUser));
-    } else {
-      localStorage.removeItem("af_current_user");
+      const emps = usersRaw.map((u) => ({
+        ...u,
+        _dept: depts.find((d) => d.id === u.departmentId)?.name || "Unassigned",
+      })).map((u) => ({
+        id: u.id,
+        name: u.name,
+        email: u.email || "",
+        role: ROLE_BACKEND_TO_UI[u.role] || "Employee",
+        roleRaw: u.role,
+        departmentId: u.departmentId,
+        dept: u._dept,
+        avatar: initials(u.name),
+        status: u.status,
+      }));
+
+      // Handoffs: transfer_requests are the real "pending approval" flow.
+      const transferHandoffs = transfersRaw.map((t) => ({
+        id: `T-${t.id}`,
+        rawId: t.id,
+        kind: "transfer",
+        assetTag: findAssetTag(t.assetId, assetsShaped),
+        fromEmployeeId: null, // resolved lazily below via allocation history if needed
+        toEmployeeId: t.toUserId,
+        status: t.status === "requested" ? "requested" : t.status === "approved" ? "approved" : "declined",
+        date: t.createdAt,
+        type: "transfer",
+      }));
+      // Allocations that are active represent completed "allocation" handoffs.
+      const allocationHandoffs = allocsRaw.map((al) => ({
+        id: `A-${al.id}`,
+        rawId: al.id,
+        kind: "allocation",
+        assetTag: findAssetTag(al.assetId, assetsShaped),
+        fromEmployeeId: null,
+        toEmployeeId: al.holderUserId,
+        status: "approved",
+        date: al.allocatedAt,
+        type: al.status === "returned" ? "return" : "allocation",
+      }));
+      const handoffsShaped = [...allocationHandoffs, ...transferHandoffs].sort(
+        (a, b) => new Date(a.date) - new Date(b.date)
+      );
+
+      const bookingsShaped = bookingsRaw.map((b) => ({
+        id: b.id,
+        assetTag: findAssetTag(b.assetId, assetsShaped),
+        assetId: b.assetId,
+        employeeId: b.bookedBy,
+        startTime: b.startTime,
+        endTime: b.endTime,
+        status: b.cancelled ? "cancelled" : "approved",
+      }));
+
+      const careShaped = maintRaw.map((m) => ({
+        id: m.id,
+        assetTag: findAssetTag(m.assetId, assetsShaped),
+        assetId: m.assetId,
+        issue: m.issue,
+        priority: (m.priority || "Medium").toLowerCase() === "high" ? "high" : "normal",
+        priorityRaw: m.priority,
+        status: m.status === "pending" ? "pending"
+          : (m.status === "approved" || m.status === "assigned") ? "assigned"
+          : m.status === "in_progress" ? "in_progress"
+          : m.status === "resolved" ? "resolved"
+          : m.status === "rejected" ? "resolved"
+          : "pending",
+        statusRaw: m.status,
+        assigneeId: null,
+        date: m.createdAt,
+      }));
+
+      // GET /audits (list) omits items — each cycle's checklist requires the
+      // detail endpoint. This was previously missing, so every audit always
+      // showed 0/0 items regardless of real data.
+      const auditDetails = await Promise.all(
+        auditsRaw.map((c) => auditsApi.get(c.id).catch(() => null))
+      );
+      const auditsShaped = auditsRaw.map((c, i) => ({
+        id: c.id,
+        title: c.name,
+        scopeDept: depts.find((d) => d.id === c.scopeDepartmentId)?.name || "All Departments",
+        scopeDeptId: c.scopeDepartmentId,
+        startDate: (c.startDate || c.createdAt || "").slice(0, 10),
+        endDate: (c.endDate || "").slice(0, 10),
+        status: c.status === "closed" ? "completed" : "active",
+        checklist: ((auditDetails[i] && auditDetails[i].items) || []).map((it) => ({
+          assetTag: findAssetTag(it.assetId, assetsShaped),
+          assetId: it.assetId,
+          itemId: it.id,
+          status: it.result === "pending" ? "pending" : it.result,
+          notes: it.note || "",
+        })),
+      }));
+
+      const ledgerShaped = notifsRaw.notifications.map((n) => ({
+        id: n.id,
+        timestamp: n.createdAt,
+        type: n.type.includes("transfer") || n.type.includes("assigned") ? "handoff" : "system",
+        message: `${n.title}: ${n.body}`,
+        user: currentUser?.name || "System",
+        unread: !n.isRead,
+        rawId: n.id,
+      }));
+
+      setDepartments(depts);
+      setCategories(cats);
+      setEmployees(emps);
+      setAssets(assetsShaped);
+      setHandoffs(handoffsShaped);
+      setBookings(bookingsShaped);
+      setCareTickets(careShaped);
+      setAudits(auditsShaped);
+      setLedger(ledgerShaped);
+    } catch (err) {
+      setError(err.message || "Failed to load data from the server");
+    } finally {
+      setLoading(false);
     }
-  }, [currentUser]);
+  }, [shapeDepartment, shapeCategory, shapeAsset, currentUser]);
 
-  // Auth helper functions
-  const login = (email, password) => {
-    const user = employees.find(e => e.email.toLowerCase() === email.toLowerCase());
-    if (user) {
-      setCurrentUser(user);
+  // ---- Boot: restore session from stored token -------------------------
+  useEffect(() => {
+    (async () => {
+      const token = getToken();
+      if (!token) {
+        setBooting(false);
+        return;
+      }
+      try {
+        const { user } = await authApi.me();
+        setCurrentUser({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: ROLE_BACKEND_TO_UI[user.role] || "Employee",
+          roleRaw: user.role,
+          departmentId: user.departmentId,
+          avatar: initials(user.name),
+        });
+      } catch (_) {
+        setToken(null);
+      } finally {
+        setBooting(false);
+      }
+    })();
+  }, []);
+
+  // Once we have a user, load all app data.
+  useEffect(() => {
+    if (currentUser) refreshAll();
+  }, [currentUser?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ---- Auth -------------------------------------------------------------
+
+  const login = async (email, password) => {
+    try {
+      const { token, user } = await authApi.login(email, password);
+      setToken(token);
+      setCurrentUser({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: ROLE_BACKEND_TO_UI[user.role] || "Employee",
+        roleRaw: user.role,
+        departmentId: user.departmentId,
+        avatar: initials(user.name),
+      });
       setCurrentView("Now");
-      addLedgerEntry("system", `${user.name} logged in successfully`, user.name);
       return { success: true, user };
+    } catch (err) {
+      return { success: false, error: err.message || "Invalid email or password" };
     }
-    return { success: false, error: "Invalid email credentials" };
+  };
+
+  const signup = async (name, email, password) => {
+    try {
+      const { token, user } = await authApi.signup(name, email, password);
+      setToken(token);
+      setCurrentUser({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: "Employee",
+        roleRaw: user.role,
+        departmentId: user.departmentId,
+        avatar: initials(user.name),
+      });
+      setCurrentView("Now");
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message || "Could not create account" };
+    }
   };
 
   const logout = () => {
-    if (currentUser) {
-      addLedgerEntry("system", `${currentUser.name} logged out`, currentUser.name);
-    }
+    setToken(null);
     setCurrentUser(null);
+    setEmployees([]); setCategories([]); setAssets([]); setDepartments([]);
+    setHandoffs([]); setBookings([]); setCareTickets([]); setAudits([]); setLedger([]);
     setCurrentView("Now");
   };
 
-  // Switch role directly for demo testing
-  const switchUser = (userId) => {
-    const user = employees.find(e => e.id === userId);
-    if (user) {
-      setCurrentUser(user);
-      addLedgerEntry("system", `Demo role switched to ${user.name} (${user.role})`, "System Tester");
+  // No real impersonation endpoint exists on the backend. "switchUser" is
+  // repurposed as a demo-only quick login using the seeded account's known
+  // demo password, clearly distinct from an admin-only role assignment.
+  const DEMO_PASSWORDS = { admin: "Admin@123" }; // default for everyone else is Password@123
+  const switchUser = async (userId) => {
+    const target = employees.find((e) => String(e.id) === String(userId));
+    if (!target) return;
+    const password = target.roleRaw === "admin" ? "Admin@123" : "Password@123";
+    await login(target.email, password);
+  };
+
+  // ---- Assets -------------------------------------------------------------
+
+  const registerAsset = async (assetData) => {
+    try {
+      const category = categories.find((c) => c.name === assetData.category);
+      const created = await assetsApi.create({
+        name: assetData.name,
+        categoryId: category ? category.id : null,
+        serialNo: assetData.serial,
+        acquisitionCost: assetData.cost,
+        location: assetData.location,
+        condition: CONDITION_TO_BACKEND[assetData.condition] || "Good",
+        isBookable: !!assetData.bookable,
+        customValues: assetData.customFields || {},
+      });
+      if (assetData.heldBy) {
+        try {
+          await allocationsApi.create({ assetId: created.id, holderUserId: assetData.heldBy });
+        } catch (_) { /* leave available if allocation fails */ }
+      }
+      await refreshAll();
+      return { success: true, tag: created.tag };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
     }
   };
 
-  // Add ledger entry
-  const addLedgerEntry = (type, message, user) => {
-    const newEntry = {
-      id: `L-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-      timestamp: new Date().toISOString(),
-      type,
-      message,
-      user,
-      unread: true
-    };
-    setLedger(prev => [newEntry, ...prev]);
-  };
-
-  // Mark all notifications read
-  const markLedgerRead = () => {
-    setLedger(prev => prev.map(item => ({ ...item, unread: false })));
-  };
-
-  // Register Asset
-  const registerAsset = (assetData) => {
-    // Generate next tag: AF-XXXX
-    const currentMax = assets.reduce((max, asset) => {
-      const num = parseInt(asset.tag.split("-")[1]);
-      return num > max ? num : max;
-    }, 0);
-    const nextTag = `AF-${String(currentMax + 1).padStart(4, "0")}`;
-
-    const newAsset = {
-      tag: nextTag,
-      ...assetData,
-      status: assetData.heldBy ? "allocated" : "available",
-      dateRegistered: new Date().toISOString().split("T")[0]
-    };
-
-    setAssets(prev => [...prev, newAsset]);
-    addLedgerEntry(
-      "system",
-      `Registered new asset: ${newAsset.name} (${newAsset.tag}) under ${newAsset.category}`,
-      currentUser?.name || "Admin"
-    );
-
-    // If allocated on registration, create an approved handoff log
-    if (newAsset.heldBy) {
-      const newHandoff = {
-        id: `H-${Date.now()}`,
-        assetTag: nextTag,
-        fromEmployeeId: currentUser?.id || "E-4",
-        toEmployeeId: newAsset.heldBy,
-        status: "approved",
-        date: new Date().toISOString(),
-        type: "allocation"
-      };
-      setHandoffs(prev => [...prev, newHandoff]);
+  const updateAssetDetails = async (tag, updatedFields) => {
+    const asset = assets.find((a) => a.tag === tag);
+    if (!asset) return { success: false, error: "Asset not found" };
+    try {
+      const payload = {};
+      if (updatedFields.name !== undefined) payload.name = updatedFields.name;
+      if (updatedFields.location !== undefined) payload.location = updatedFields.location;
+      if (updatedFields.condition !== undefined) payload.condition = CONDITION_TO_BACKEND[updatedFields.condition];
+      if (updatedFields.bookable !== undefined) payload.isBookable = updatedFields.bookable;
+      if (updatedFields.customFields !== undefined) payload.customValues = updatedFields.customFields;
+      if (updatedFields.status !== undefined) payload.status = ASSET_STATUS_TO_BACKEND[updatedFields.status];
+      await assetsApi.update(asset.id, payload);
+      await refreshAll();
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
     }
-
-    return newAsset;
   };
 
-  // Update Asset details
-  const updateAssetDetails = (tag, updatedFields) => {
-    setAssets(prev =>
-      prev.map(asset => {
-        if (asset.tag === tag) {
-          return { ...asset, ...updatedFields };
-        }
-        return asset;
-      })
-    );
+  const uploadAssetPhoto = async (tag, file) => {
+    const asset = assets.find((a) => a.tag === tag);
+    if (!asset || !file) return { success: false, error: "Nothing to upload" };
+    try {
+      await assetsApi.uploadPhoto(asset.id, file);
+      await refreshAll();
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    }
   };
 
-  // Category schema builder
-  const addCategory = (categoryName, fields) => {
-    const newCat = {
-      id: `CAT-${Date.now()}`,
-      name: categoryName,
-      customFields: fields
-    };
-    setCategories(prev => [...prev, newCat]);
-    addLedgerEntry("system", `Created custom asset category: ${categoryName}`, currentUser?.name || "Admin");
+  const addCategory = async (categoryName, fields) => {
+    try {
+      await categoriesApi.create({ name: categoryName, customFields: fields });
+      await refreshAll();
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    }
   };
 
-  // Handoff Request & Approvals
-  const requestHandoff = (assetTag, toEmployeeId, type) => {
-    const asset = assets.find(a => a.tag === assetTag);
+  // ---- Handoffs (allocations + transfers) ---------------------------------
+
+  const requestHandoff = async (assetTag, toEmployeeId, type) => {
+    const asset = assets.find((a) => a.tag === assetTag);
     if (!asset) return { success: false, error: "Asset not found" };
 
-    // Validations:
-    // If allocated/maint and it's an allocation request -> trigger Refusal
-    if (type === "allocation" && asset.status !== "available") {
-      const holder = employees.find(e => e.id === asset.heldBy);
-      return { 
-        success: false, 
-        error: "refusal", 
-        reason: `${holder ? holder.name : "Someone"} currently holds this asset.`,
-        holderId: asset.heldBy
-      };
+    try {
+      if (type === "allocation") {
+        await allocationsApi.create({ assetId: asset.id, holderUserId: toEmployeeId });
+        await refreshAll();
+        return { success: true };
+      }
+      if (type === "transfer") {
+        await transfersApi.create({ assetId: asset.id, toUserId: toEmployeeId });
+        await refreshAll();
+        return { success: true };
+      }
+      if (type === "return") {
+        if (!asset.activeAllocationId) return { success: false, error: "This asset has no active allocation to return" };
+        await allocationsApi.return(asset.activeAllocationId);
+        await refreshAll();
+        return { success: true };
+      }
+      return { success: false, error: "Unknown handoff type" };
+    } catch (err) {
+      if (err.status === 409) {
+        const holder = employees.find((e) => e.id === err.payload?.holder?.id);
+        return {
+          success: false,
+          error: "refusal",
+          reason: err.message,
+          holderId: err.payload?.holder?.id ?? holder?.id ?? null,
+        };
+      }
+      return { success: false, error: err.message };
     }
-
-    const newHandoff = {
-      id: `H-${Date.now()}`,
-      assetTag,
-      fromEmployeeId: asset.heldBy || currentUser?.id,
-      toEmployeeId,
-      status: "requested",
-      date: new Date().toISOString(),
-      type
-    };
-
-    setHandoffs(prev => [...prev, newHandoff]);
-    
-    const requesterName = employees.find(e => e.id === toEmployeeId)?.name || "Employee";
-    const assetName = asset.name;
-    addLedgerEntry(
-      "handoff",
-      `Handoff request raised: ${type} of ${assetName} to ${requesterName}`,
-      currentUser?.name || requesterName
-    );
-
-    return { success: true };
   };
 
-  const approveHandoff = (handoffId) => {
-    const handoff = handoffs.find(h => h.id === handoffId);
-    if (!handoff) return;
-
-    const asset = assets.find(a => a.tag === handoff.assetTag);
-    if (!asset) return;
-
-    const receiverName = employees.find(e => e.id === handoff.toEmployeeId)?.name || "Employee";
-    
-    // Update asset state based on handoff type
-    let nextStatus = "allocated";
-    let nextHeldBy = handoff.toEmployeeId;
-
-    if (handoff.type === "return") {
-      nextStatus = "available";
-      nextHeldBy = null;
+  const approveHandoff = async (handoffId) => {
+    const h = handoffs.find((x) => x.id === handoffId);
+    if (!h || h.kind !== "transfer") return { success: false, error: "Not a pending transfer" };
+    try {
+      await transfersApi.decide(h.rawId, "approve");
+      await refreshAll();
+      pushToast("Transfer approved.", "success");
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
     }
-
-    setAssets(prev =>
-      prev.map(a => {
-        if (a.tag === asset.tag) {
-          return { ...a, status: nextStatus, heldBy: nextHeldBy, overdueSince: null };
-        }
-        return a;
-      })
-    );
-
-    setHandoffs(prev =>
-      prev.map(h => {
-        if (h.id === handoffId) {
-          return { ...h, status: "approved" };
-        }
-        return h;
-      })
-    );
-
-    addLedgerEntry(
-      "handoff",
-      `Handoff approved: ${asset.name} is now ${handoff.type === "return" ? "returned and available" : `in the hands of ${receiverName}`}`,
-      currentUser?.name || "Admin"
-    );
   };
 
-  const declineHandoff = (handoffId) => {
-    setHandoffs(prev =>
-      prev.map(h => {
-        if (h.id === handoffId) {
-          return { ...h, status: "declined" };
-        }
-        return h;
-      })
-    );
-    const handoff = handoffs.find(h => h.id === handoffId);
-    const assetName = assets.find(a => a.tag === handoff?.assetTag)?.name || "Asset";
-    addLedgerEntry(
-      "handoff",
-      `Handoff declined: transfer of ${assetName} was refused`,
-      currentUser?.name || "Admin"
-    );
-  };
-
-  // Booking scheduler overlap checking (Section 7)
-  const addBooking = (bookingData) => {
-    const { assetTag, employeeId, startTime, endTime } = bookingData;
-    
-    const newStart = new Date(startTime);
-    const newEnd = new Date(endTime);
-
-    // Overlap rule: newStart < existingEnd && newEnd > existingStart
-    const overlapping = bookings.find(b => {
-      if (b.assetTag !== assetTag || b.status !== "approved") return false;
-      const bStart = new Date(b.startTime);
-      const bEnd = new Date(b.endTime);
-      return newStart < bEnd && newEnd > bStart;
-    });
-
-    if (overlapping) {
-      const booker = employees.find(e => e.id === overlapping.employeeId)?.name || "Another user";
-      return { 
-        success: false, 
-        error: "overlap",
-        reason: `Reserved by ${booker} during this slot.`,
-        overlapping
-      };
+  const declineHandoff = async (handoffId) => {
+    const h = handoffs.find((x) => x.id === handoffId);
+    if (!h || h.kind !== "transfer") return { success: false, error: "Not a pending transfer" };
+    try {
+      await transfersApi.decide(h.rawId, "reject");
+      await refreshAll();
+      pushToast("Transfer declined.", "info");
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
     }
-
-    const newBooking = {
-      id: `B-${Date.now()}`,
-      assetTag,
-      employeeId,
-      startTime,
-      endTime,
-      status: "approved"
-    };
-
-    setBookings(prev => [...prev, newBooking]);
-    
-    // Set asset status to reserved if booking is active now
-    const now = new Date();
-    if (now >= newStart && now <= newEnd) {
-      setAssets(prev =>
-        prev.map(a => (a.tag === assetTag ? { ...a, status: "reserved" } : a))
-      );
-    }
-
-    const assetName = assets.find(a => a.tag === assetTag)?.name || "Asset";
-    const requesterName = employees.find(e => e.id === employeeId)?.name || "Employee";
-    addLedgerEntry(
-      "system",
-      `Reserved ${assetName} for ${requesterName} from ${newStart.toLocaleDateString()} to ${newEnd.toLocaleDateString()}`,
-      requesterName
-    );
-
-    return { success: true };
   };
 
-  // Care Work Tickets Kanban
-  const addCareTicket = (ticketData) => {
-    const newTicket = {
-      id: `C-${Date.now()}`,
-      assetTag: ticketData.assetTag,
-      issue: ticketData.issue,
-      priority: ticketData.priority,
-      status: "pending",
-      assigneeId: null,
-      date: new Date().toISOString()
-    };
+  // ---- Bookings -------------------------------------------------------------
 
-    setCareTickets(prev => [...prev, newTicket]);
-    
-    const assetName = assets.find(a => a.tag === ticketData.assetTag)?.name || "Asset";
-    addLedgerEntry(
-      "system",
-      `Raised Care maintenance request for ${assetName}: "${ticketData.issue}"`,
-      currentUser?.name || "Employee"
-    );
-  };
-
-  const updateCareTicketStatus = (ticketId, nextStatus, assigneeId = null) => {
-    setCareTickets(prev =>
-      prev.map(ticket => {
-        if (ticket.id === ticketId) {
-          const updated = { ...ticket, status: nextStatus };
-          if (assigneeId !== null) {
-            updated.assigneeId = assigneeId;
-          }
-          return updated;
-        }
-        return ticket;
-      })
-    );
-
-    const ticket = careTickets.find(t => t.id === ticketId);
-    if (!ticket) return;
-
-    // Side effect on asset state:
-    // If Approved/Assigned/In Progress -> Under Maintenance (status: "maint")
-    // If Resolved -> Available (status: "available", heldBy: null)
-    let assetStatus = null;
-    if (["approved", "assigned", "in_progress"].includes(nextStatus)) {
-      assetStatus = "maint";
-    } else if (nextStatus === "resolved") {
-      assetStatus = "available";
-    }
-
-    if (assetStatus) {
-      setAssets(prev =>
-        prev.map(a => {
-          if (a.tag === ticket.assetTag) {
-            return { 
-              ...a, 
-              status: assetStatus, 
-              heldBy: nextStatus === "resolved" ? null : a.heldBy 
-            };
-          }
-          return a;
-        })
-      );
-    }
-
-    const assetName = assets.find(a => a.tag === ticket.assetTag)?.name || "Asset";
-    addLedgerEntry(
-      "system",
-      `Care ticket for ${assetName} moved to '${nextStatus}'`,
-      currentUser?.name || "System"
-    );
-  };
-
-  // Audits checklists and Consequence Gates (Section 7)
-  const createAuditCycle = (auditData) => {
-    const targetDept = departments.find(d => d.id === auditData.scopeDeptDeptId)?.name || "All Departments";
-    
-    // Select assets belonging to employees of this department
-    const targetEmployeeIds = employees
-      .filter(e => e.dept === targetDept)
-      .map(e => e.id);
-
-    const targetAssets = assets.filter(a => targetEmployeeIds.includes(a.heldBy));
-
-    const newAudit = {
-      id: `A-${Date.now()}`,
-      title: auditData.title,
-      scopeDept: targetDept,
-      startDate: new Date().toISOString().split("T")[0],
-      endDate: auditData.endDate,
-      status: "active",
-      checklist: targetAssets.map(a => ({
-        assetTag: a.tag,
-        status: "pending",
-        notes: ""
-      }))
-    };
-
-    setAudits(prev => [...prev, newAudit]);
-    addLedgerEntry("system", `Created audit cycle '${newAudit.title}' targeting ${targetDept}`, currentUser?.name || "Admin");
-  };
-
-  const updateAuditCheckItem = (auditId, assetTag, status, notes) => {
-    setAudits(prev =>
-      prev.map(audit => {
-        if (audit.id === auditId) {
-          const updatedChecklist = audit.checklist.map(item => {
-            if (item.assetTag === assetTag) {
-              return { ...item, status, notes };
-            }
-            return item;
-          });
-          return { ...audit, checklist: updatedChecklist };
-        }
-        return audit;
-      })
-    );
-  };
-
-  // Close audit and run Consequence Gate (Section 7)
-  const closeAuditCycle = (auditId) => {
-    const audit = audits.find(a => a.id === auditId);
-    if (!audit) return;
-
-    // Process consequence gate checklist items:
-    // Any asset marked "missing" is globally set to "lost/alert" and heldBy = null
-    // Any asset marked "damaged" triggers an automatic Care work order and status = "maint"
-    const missingAssets = audit.checklist.filter(item => item.status === "missing");
-    const damagedAssets = audit.checklist.filter(item => item.status === "damaged");
-
-    setAssets(prev =>
-      prev.map(asset => {
-        const missingMatch = missingAssets.find(m => m.assetTag === asset.tag);
-        const damagedMatch = damagedAssets.find(d => d.assetTag === asset.tag);
-
-        if (missingMatch) {
-          return { ...asset, status: "alert", heldBy: null, overdueSince: new Date().toISOString() };
-        }
-        if (damagedMatch) {
-          return { ...asset, status: "maint" };
-        }
-        return asset;
-      })
-    );
-
-    // Auto-generate Care tickets for damaged assets
-    damagedAssets.forEach(item => {
-      const asset = assets.find(a => a.tag === item.assetTag);
-      addCareTicket({
-        assetTag: item.assetTag,
-        issue: `Auto-raised from Audit [${audit.title}]: Damaged asset reported. Note: ${item.notes || "None"}`,
-        priority: "normal"
+  const addBooking = async (bookingData) => {
+    const asset = assets.find((a) => a.tag === bookingData.assetTag);
+    if (!asset) return { success: false, error: "Asset not found" };
+    try {
+      await bookingsApi.create({
+        assetId: asset.id,
+        startTime: bookingData.startTime,
+        endTime: bookingData.endTime,
+        purpose: bookingData.purpose || "",
       });
-    });
-
-    setAudits(prev =>
-      prev.map(a => (a.id === auditId ? { ...a, status: "completed" } : a))
-    );
-
-    addLedgerEntry(
-      "system",
-      `Audit cycle '${audit.title}' finalized. Missing assets marked lost. Damaged assets sent to Care.`,
-      currentUser?.name || "Admin"
-    );
-  };
-
-  // Setup promoter and department modifiers
-  const promoteEmployeeRole = (employeeId, newRole, departmentName) => {
-    setEmployees(prev =>
-      prev.map(emp => {
-        if (emp.id === employeeId) {
-          return { ...emp, role: newRole, dept: departmentName };
-        }
-        return emp;
-      })
-    );
-    const empName = employees.find(e => e.id === employeeId)?.name || "Employee";
-    addLedgerEntry("system", `Promoted ${empName} to ${newRole} in ${departmentName}`, currentUser?.name || "Admin");
-  };
-
-  const addDepartment = (name, headId, parentId = null) => {
-    const newDept = {
-      id: `D-${Date.now()}`,
-      name,
-      headEmployeeId: headId,
-      parentId,
-      status: "active"
-    };
-    setDepartments(prev => [...prev, newDept]);
-    addLedgerEntry("system", `Added department: ${name}`, currentUser?.name || "Admin");
-  };
-
-  // Reset database for first-run empty test demonstration
-  const resetDatabase = (clearAll = false) => {
-    if (clearAll) {
-      setEmployees(initialEmployees);
-      setCategories(initialCategories);
-      setAssets([]);
-      setDepartments(initialDepartments);
-      setHandoffs([]);
-      setBookings([]);
-      setCareTickets([]);
-      setAudits([]);
-      setLedger([]);
-      setCurrentUser(initialEmployees.find(e => e.role === "Admin")); // Auto-select admin
-      addLedgerEntry("system", "Demo Database cleared. Guided Empty Now view initialized.", "System Seeder");
-    } else {
-      localStorage.clear();
-      setEmployees(initialEmployees);
-      setCategories(initialCategories);
-      setAssets(initialAssets);
-      setDepartments(initialDepartments);
-      setHandoffs(initialHandoffs);
-      setBookings(initialBookings);
-      setCareTickets(initialCareTickets);
-      setAudits(initialAudits);
-      setLedger(initialLedger);
-      setCurrentUser(initialEmployees.find(e => e.role === "Admin"));
-      addLedgerEntry("system", "Demo Database reset to fully seeded state.", "System Seeder");
+      await refreshAll();
+      return { success: true };
+    } catch (err) {
+      if (err.status === 409) {
+        const conflict = err.payload?.conflict;
+        return {
+          success: false,
+          error: "overlap",
+          reason: err.message,
+          overlapping: conflict ? { employeeId: conflict.bookedBy } : null,
+        };
+      }
+      return { success: false, error: err.message, reason: err.message };
     }
+  };
+
+  // ---- Care / maintenance -----------------------------------------------
+
+  const addCareTicket = async (ticketData, photoFile) => {
+    const asset = assets.find((a) => a.tag === ticketData.assetTag);
+    if (!asset) return { success: false, error: "Asset not found" };
+    try {
+      await maintenanceApi.create({
+        assetId: asset.id,
+        issue: ticketData.issue,
+        priority: ticketData.priority === "high" ? "High" : "Medium",
+      }, photoFile);
+      await refreshAll();
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  const updateCareTicketStatus = async (ticketId, nextStatus) => {
+    const ticket = careTickets.find((t) => t.id === ticketId);
+    if (!ticket) return { success: false, error: "Ticket not found" };
+    // Map the frontend kanban progression onto the backend action state machine.
+    const actionFromStatus = {
+      assigned: ticket.statusRaw === "pending" ? "approve" : "assign",
+      in_progress: "start",
+      resolved: "resolve",
+      pending: null,
+    };
+    const action = actionFromStatus[nextStatus];
+    if (!action) {
+      pushToast("This ticket can't move backward — the backend workflow is one-way.", "warning");
+      return { success: false, error: "No reverse action available" };
+    }
+    try {
+      const payload = { action };
+      if (action === "assign") { payload.technicianName = "Assigned Technician"; payload.technicianContact = "internal"; }
+      await maintenanceApi.update(ticket.id, payload);
+      await refreshAll();
+      pushToast(`Ticket moved to ${nextStatus.replace("_", " ")}.`, "success");
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  // ---- Audits -------------------------------------------------------------
+
+  const createAuditCycle = async (auditData) => {
+    try {
+      const auditorIds = employees
+        .filter((e) => ["Admin", "Manager"].includes(e.role))
+        .map((e) => e.id);
+      const created = await auditsApi.create({
+        name: auditData.title,
+        scopeDepartmentId: auditData.scopeDeptDeptId || null,
+        endDate: auditData.endDate,
+        auditorIds: auditorIds.length ? auditorIds : [currentUser?.id],
+      });
+      await refreshAll();
+      return { success: true, id: created.id };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  const updateAuditCheckItem = async (auditId, assetTag, status, notes) => {
+    const audit = audits.find((a) => a.id === auditId);
+    if (!audit) return { success: false, error: "Audit not found" };
+    const item = audit.checklist.find((c) => c.assetTag === assetTag);
+    if (!item) return { success: false, error: "Checklist item not found" };
+    const resultMap = { verified: "verified", damaged: "damaged", missing: "missing" };
+    try {
+      await auditsApi.updateItem(auditId, item.itemId, { result: resultMap[status] || "verified", note: notes });
+      await refreshAll();
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  const closeAuditCycle = async (auditId) => {
+    try {
+      await auditsApi.close(auditId);
+      await refreshAll();
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  // ---- Setup / directory ----------------------------------------------------
+
+  const promoteEmployeeRole = async (employeeId, newRole, departmentName) => {
+    try {
+      const dept = departments.find((d) => d.name === departmentName);
+      await usersApi.update(employeeId, {
+        role: ROLE_UI_TO_BACKEND[newRole] || undefined,
+        departmentId: dept ? dept.id : undefined,
+      });
+      await refreshAll();
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  const addDepartment = async (name, headId, parentId = null) => {
+    try {
+      const parentDept = departments.find((d) => d.name === parentId || d.id === parentId);
+      await departmentsApi.create({
+        name,
+        headUserId: headId || null,
+        parentId: parentDept ? parentDept.id : null,
+      });
+      await refreshAll();
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  // ---- Ledger / notifications -------------------------------------------
+
+  const addLedgerEntry = () => { /* server generates notifications as a side-effect of actions now */ };
+
+  const markLedgerRead = async () => {
+    try {
+      await notificationsApi.markAllRead();
+      setLedger((prev) => prev.map((item) => ({ ...item, unread: false })));
+    } catch (_) { /* non-fatal */ }
+  };
+
+  // Demo reset: re-fetch from the server (the seed script is the real reset).
+  const resetDatabase = async () => {
+    await refreshAll();
   };
 
   return (
@@ -616,11 +746,22 @@ export const AppProvider = ({ children }) => {
         currentUser,
         currentView,
         setCurrentView,
+        loading,
+        error,
+        booting,
+        theme,
+        toggleTheme,
+        toasts,
+        pushToast,
+        dismissToast,
+        clearError: () => setError(null),
         login,
+        signup,
         logout,
         switchUser,
         registerAsset,
         updateAssetDetails,
+        uploadAssetPhoto,
         addCategory,
         requestHandoff,
         approveHandoff,
@@ -634,7 +775,9 @@ export const AppProvider = ({ children }) => {
         promoteEmployeeRole,
         addDepartment,
         resetDatabase,
-        markLedgerRead
+        addLedgerEntry,
+        markLedgerRead,
+        refreshAll,
       }}
     >
       {children}

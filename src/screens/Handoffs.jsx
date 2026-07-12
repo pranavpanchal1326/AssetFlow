@@ -1,41 +1,39 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { AppContext } from "../context/AppContext";
 import { StampedTag } from "../components/StampedTag";
-import { RefusalAlert } from "../components/RefusalAlert";
-import { 
-  ArrowLeftRight, Check, X, UserMinus, UserCheck, RefreshCw, 
-  Search, UserSearch, ArrowDown, Ban, Package 
+import {
+  ArrowLeftRight, Check, X, UserMinus, UserCheck, RefreshCw,
+  Search, UserSearch, ArrowDown, Ban, Package
 } from "lucide-react";
 
 export const Handoffs = () => {
-  const { 
-    assets, 
-    employees, 
-    handoffs, 
-    requestHandoff, 
-    approveHandoff, 
+  const {
+    assets,
+    employees,
+    handoffs,
+    requestHandoff,
+    approveHandoff,
     declineHandoff,
-    currentUser 
+    currentUser,
+    pushToast
   } = useContext(AppContext);
 
   // Form states
   const [activeTab, setActiveTab] = useState("allocate"); // allocate, transfer, return
   const [selectedAssetTag, setSelectedAssetTag] = useState("");
   const [targetEmployeeId, setTargetEmployeeId] = useState("");
-  
+
   // Inline Refusal state (shown below allocate form, not modal)
   const [inlineRefusal, setInlineRefusal] = useState(null);
-  
-  // Refusal Modal states (kept for backward compat)
-  const [refusalOpen, setRefusalOpen] = useState(false);
-  const [refusalReason, setRefusalReason] = useState("");
-  const [refusalAssetTag, setRefusalAssetTag] = useState("");
-  const [refusalTargetEmpId, setRefusalTargetEmpId] = useState("");
 
   const isManagerOrAdmin = ["Admin", "Manager"].includes(currentUser?.role);
+  // Only asset_manager/dept_head may allocate directly or decide transfers server-side (RBAC).
+  const canAllocate = ["asset_manager", "dept_head"].includes(currentUser?.roleRaw);
+  const canDecideTransfers = ["asset_manager", "dept_head"].includes(currentUser?.roleRaw);
 
   // Submit handoff request
-  const handleSubmit = (e) => {
+  const [submitting, setSubmitting] = useState(false);
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedAssetTag) return;
 
@@ -46,10 +44,12 @@ export const Handoffs = () => {
       type = "transfer";
     } else if (activeTab === "return") {
       type = "return";
-      targetEmp = currentUser?.id || "E-4";
+      targetEmp = currentUser?.id;
     }
 
-    const res = requestHandoff(selectedAssetTag, targetEmp, type);
+    setSubmitting(true);
+    const res = await requestHandoff(selectedAssetTag, targetEmp, type);
+    setSubmitting(false);
 
     if (!res.success) {
       if (res.error === "refusal") {
@@ -65,27 +65,27 @@ export const Handoffs = () => {
           holderDept: holder?.dept || "",
         });
       } else {
-        alert(res.error || "Action failed");
+        pushToast(res.error || "Action failed", "error");
       }
     } else {
       setSelectedAssetTag("");
       setTargetEmployeeId("");
       setInlineRefusal(null);
-      alert("Handoff request logged successfully.");
+      pushToast("Handoff request logged successfully.", "success");
     }
   };
 
   // Triggered from inline refusal "Request Transfer" button
-  const handleInlineTransferRequest = () => {
+  const handleInlineTransferRequest = async () => {
     if (!inlineRefusal) return;
-    
-    const res = requestHandoff(inlineRefusal.assetTag, inlineRefusal.targetEmpId, "transfer");
+
+    const res = await requestHandoff(inlineRefusal.assetTag, inlineRefusal.targetEmpId, "transfer");
     if (res.success) {
-      alert("Transfer request raised successfully. Current holder has been notified.");
+      pushToast("Transfer request raised successfully. Current holder has been notified.", "success");
     } else {
-      alert("Could not raise transfer request.");
+      pushToast(res.error || "Could not raise transfer request.", "error");
     }
-    
+
     setInlineRefusal(null);
     setSelectedAssetTag("");
     setTargetEmployeeId("");
@@ -100,30 +100,19 @@ export const Handoffs = () => {
     return <Package size={18} />;
   };
 
-  // Tab config
+  // Tab config — direct allocation is asset_manager/dept_head only server-side.
   const tabs = [
-    { key: "allocate", label: "Allocate", icon: UserCheck },
+    ...(canAllocate ? [{ key: "allocate", label: "Allocate", icon: UserCheck }] : []),
     { key: "transfer", label: "Transfer", icon: ArrowLeftRight },
     { key: "return", label: "Return", icon: UserMinus },
   ];
 
+  useEffect(() => {
+    if (activeTab === "allocate" && !canAllocate) setActiveTab("transfer");
+  }, [canAllocate, activeTab]);
+
   return (
     <div>
-      {/* Refusal Alert Modal (fallback) */}
-      <RefusalAlert 
-        isOpen={refusalOpen}
-        title="Custody Refusal"
-        reason={refusalReason}
-        onAction={() => {
-          setRefusalOpen(false);
-          const res = requestHandoff(refusalAssetTag, refusalTargetEmpId, "transfer");
-          if (res.success) alert("Transfer request raised.");
-          setSelectedAssetTag("");
-          setTargetEmployeeId("");
-        }}
-        onClose={() => setRefusalOpen(false)}
-      />
-
       {/* Page Header */}
       <div className="handoffs-page-header">
         <h2>Transfers & Returns</h2>
@@ -266,14 +255,16 @@ export const Handoffs = () => {
               )}
 
               {/* CTA Button */}
-              <button type="submit" className="allocate-cta">
+              <button type="submit" className="allocate-cta" disabled={submitting}>
                 {activeTab === "allocate" && <UserCheck size={14} />}
                 {activeTab === "transfer" && <ArrowLeftRight size={14} />}
                 {activeTab === "return" && <UserMinus size={14} />}
                 <span>
-                  {activeTab === "allocate" && "Initiate Transfer"}
-                  {activeTab === "transfer" && "Request Custody Transfer"}
-                  {activeTab === "return" && "Process Return"}
+                  {submitting
+                    ? "Processing…"
+                    : activeTab === "allocate" ? "Initiate Transfer"
+                    : activeTab === "transfer" ? "Request Custody Transfer"
+                    : "Process Return"}
                 </span>
               </button>
             </form>
@@ -420,24 +411,30 @@ export const Handoffs = () => {
                     </span>
                   </div>
 
-                  {/* Action Row (only for pending) */}
-                  {isPending && (
-                    <div className="custody-action-row">
-                      <button 
-                        className="custody-action-btn reject"
-                        onClick={() => declineHandoff(handoff.id)}
-                      >
-                        <X size={14} />
-                        Reject
-                      </button>
-                      <button 
-                        className="custody-action-btn approve"
-                        onClick={() => approveHandoff(handoff.id)}
-                      >
-                        <Check size={14} />
-                        Approve
-                      </button>
-                    </div>
+                  {/* Action Row (only for pending, and only transfers can be decided) */}
+                  {isPending && handoff.type === "transfer" && (
+                    canDecideTransfers ? (
+                      <div className="custody-action-row">
+                        <button
+                          className="custody-action-btn reject"
+                          onClick={() => declineHandoff(handoff.id)}
+                        >
+                          <X size={14} />
+                          Reject
+                        </button>
+                        <button
+                          className="custody-action-btn approve"
+                          onClick={() => approveHandoff(handoff.id)}
+                        >
+                          <Check size={14} />
+                          Approve
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: "11px", color: "var(--text-3)", fontStyle: "italic" }}>
+                        Awaiting a manager or department head to decide.
+                      </div>
+                    )
                   )}
                 </div>
               );

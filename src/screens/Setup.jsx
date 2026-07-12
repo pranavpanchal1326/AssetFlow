@@ -3,14 +3,15 @@ import { AppContext } from "../context/AppContext";
 import { Plus, UserPlus, GitFork, Tag, Users, AlertTriangle } from "lucide-react";
 
 export const Setup = () => {
-  const { 
-    departments, 
-    categories, 
-    employees, 
-    addDepartment, 
-    addCategory, 
+  const {
+    departments,
+    categories,
+    employees,
+    addDepartment,
+    addCategory,
     promoteEmployeeRole,
-    currentUser 
+    currentUser,
+    pushToast
   } = useContext(AppContext);
 
   // Tab State: depts, categories, directory
@@ -39,15 +40,17 @@ export const Setup = () => {
   }
 
   // Handle department submit
-  const handleAddDept = (e) => {
+  const handleAddDept = async (e) => {
     e.preventDefault();
     if (!deptName) return;
 
-    addDepartment(deptName, deptHeadId || null, deptParentId || null);
+    const res = await addDepartment(deptName, deptHeadId || null, deptParentId || null);
+    if (!res.success) return;
+
+    pushToast(`Department "${deptName}" created.`, "success");
     setDeptName("");
     setDeptHeadId("");
     setDeptParentId("");
-    alert("Department registered successfully.");
   };
 
   // Add field row to category builder
@@ -65,17 +68,18 @@ export const Setup = () => {
     setFields(updated);
   };
 
-  const handleAddCategorySubmit = (e) => {
+  const handleAddCategorySubmit = async (e) => {
     e.preventDefault();
     if (!catName) return;
 
     // Filter out blank custom fields
     const validFields = fields.filter(f => f.key.trim() && f.label.trim());
-    addCategory(catName, validFields);
+    const res = await addCategory(catName, validFields);
+    if (!res.success) return;
 
+    pushToast(`Category "${catName}" created.`, "success");
     setCatName("");
     setFields([{ key: "", label: "", type: "text" }]);
-    alert("Asset Category and dynamic specification schema created.");
   };
 
   // Trigger directory promoter
@@ -85,13 +89,13 @@ export const Setup = () => {
   };
 
   // Commit promoter
-  const handleConfirmRoleChange = () => {
+  const handleConfirmRoleChange = async () => {
     if (!promoteTarget) return;
     const { emp, newRole } = promoteTarget;
-    promoteEmployeeRole(emp.id, newRole, emp.dept);
+    const res = await promoteEmployeeRole(emp.id, newRole, emp.dept);
     setShowRoleConfirm(false);
     setPromoteTarget(null);
-    alert(`Authorized: ${emp.name} credentials updated to ${newRole}.`);
+    if (res.success) pushToast(`${emp.name} is now ${newRole}.`, "success");
   };
 
   return (

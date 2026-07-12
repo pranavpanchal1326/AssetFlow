@@ -592,5 +592,32 @@
     "entity_id": 5,
     "detail": { "asset_tag": "AF-0026", "room": "Agile Den", "slot": "12 Jul 2026, 10:00–11:00", "note": "Back-to-back with Platform Team standup — boundary accepted" },
     "created_at": "2026-07-10T14:00:00.000Z"
+  },
+  {
+    "id": 67,
+    "user_id": 3,
+    "action": "transfer_requested",
+    "entity_type": "transfer",
+    "entity_id": 4,
+    "detail": { "asset_tag": "AF-0032", "requested_by": "Rohan Kulkarni", "current_holder": "Kavita Sharma", "reason": "Webcam needed in Summit Hall for board presentations" },
+    "created_at": "2026-04-03T15:30:00.000Z"
+  },
+  {
+    "id": 68,
+    "user_id": 7,
+    "action": "transfer_approved",
+    "entity_type": "transfer",
+    "entity_id": 4,
+    "detail": { "asset_tag": "AF-0032", "from": "Kavita Sharma", "to_department": "Executive Leadership", "approved_by": "Deepak Nair" },
+    "created_at": "2026-04-05T11:00:00.000Z"
+  },
+  {
+    "id": 69,
+    "user_id": 9,
+    "action": "booking_cancelled",
+    "entity_type": "booking",
+    "entity_id": 3,
+    "detail": { "asset_tag": "AF-0026", "room": "Agile Den", "slot": "25 Jun 2026, 14:00–15:30", "cancelled_by": "Rajesh Iyer" },
+    "created_at": "2026-06-23T11:00:00.000Z"
   }
 ]

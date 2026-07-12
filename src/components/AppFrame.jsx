@@ -11,22 +11,26 @@ import {
   ListTodo, 
   Settings, 
   LogOut, 
-  Bell, 
-  Search, 
+  Bell,
+  Search,
   RotateCcw,
-  Menu
+  Menu,
+  Sun,
+  Moon
 } from "lucide-react";
 
 export const AppFrame = ({ children, onSearchQueryChange }) => {
-  const { 
-    currentUser, 
-    logout, 
-    currentView, 
-    setCurrentView, 
-    employees, 
-    switchUser, 
+  const {
+    currentUser,
+    logout,
+    currentView,
+    setCurrentView,
+    employees,
+    switchUser,
     resetDatabase,
-    ledger 
+    ledger,
+    theme,
+    toggleTheme
   } = useContext(AppContext);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -209,9 +213,20 @@ export const AppFrame = ({ children, onSearchQueryChange }) => {
               </select>
             </div>
 
+            {/* Theme toggle */}
+            <button
+              className="btn btn-small"
+              onClick={toggleTheme}
+              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              aria-label="Toggle color theme"
+              style={{ border: "none", background: "none" }}
+            >
+              {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
+
             {/* Notification Bell */}
-            <button 
-              className="btn btn-small" 
+            <button
+              className="btn btn-small"
               onClick={() => setCurrentView("Ledger")}
               style={{ position: "relative", border: "none", background: "none" }}
               title={`${unreadCount} Unread Logs`}
