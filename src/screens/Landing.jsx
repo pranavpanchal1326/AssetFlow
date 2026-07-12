@@ -74,7 +74,7 @@ export const Landing = ({ onEnterApp }) => {
   );
 
   return (
-    <div className="landing-hero" ref={containerRef} style={{ height: "650vh" }}>
+    <div className="landing-hero" ref={containerRef}>
       
       {/* Sticky Premium Topbar Header */}
       <header className="landing-nav" style={{ height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -422,7 +422,7 @@ export const Landing = ({ onEnterApp }) => {
         </section>
 
         {/* Section 5: Institutional Compliance Footer */}
-        <footer className="landing-footer" style={{ minHeight: "50vh", display: "flex", justifyContent: "flex-end" }}>
+        <footer className="landing-footer">
           <div className="landing-footer-top">
             <div className="landing-footer-brand">
               <h4>AssetFlow</h4>
