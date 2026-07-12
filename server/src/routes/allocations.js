@@ -103,6 +103,13 @@ router.post('/', requireAuth, requireRole('asset_manager', 'dept_head'), (req, r
   if (!asset) {
     return res.status(404).json({ ok: false, error: 'Asset not found' });
   }
+  // Validate the holder exists before touching any state (avoids a mid-op FK failure).
+  if (holderUserId && !db.prepare('SELECT 1 FROM users WHERE id = ?').get(holderUserId)) {
+    return res.status(400).json({ ok: false, error: 'Holder user not found' });
+  }
+  if (holderDepartmentId && !db.prepare('SELECT 1 FROM departments WHERE id = ?').get(holderDepartmentId)) {
+    return res.status(400).json({ ok: false, error: 'Holder department not found' });
+  }
   // Double-allocation block (⭐ core judging feature).
   const current = activeAllocation(assetId);
   if (current) {
@@ -114,21 +121,25 @@ router.post('/', requireAuth, requireRole('asset_manager', 'dept_head'), (req, r
       canRequestTransfer: true,
     });
   }
-  // Asset must be allocatable from its current state.
+  // Transition + insert are atomic: if either fails, neither is applied.
+  let alloc;
   try {
-    transitionAsset(assetId, 'Allocated', req.user.id, 'Allocated');
+    const tx = db.transaction(() => {
+      transitionAsset(assetId, 'Allocated', req.user.id, 'Allocated');
+      const info = db.prepare(
+        `INSERT INTO allocations
+           (asset_id, holder_user_id, holder_department_id, allocated_by, expected_return_date, status)
+         VALUES (?, ?, ?, ?, ?, 'active')`
+      ).run(assetId, holderUserId ?? null, holderDepartmentId ?? null, req.user.id, expectedReturnDate ?? null);
+      return db.prepare('SELECT * FROM allocations WHERE id = ?').get(info.lastInsertRowid);
+    });
+    alloc = tx();
   } catch (err) {
     if (err instanceof TransitionError) {
       return res.status(400).json({ ok: false, error: `Cannot allocate: ${err.message}` });
     }
     throw err;
   }
-  const info = db.prepare(
-    `INSERT INTO allocations
-       (asset_id, holder_user_id, holder_department_id, allocated_by, expected_return_date, status)
-     VALUES (?, ?, ?, ?, ?, 'active')`
-  ).run(assetId, holderUserId ?? null, holderDepartmentId ?? null, req.user.id, expectedReturnDate ?? null);
-  const alloc = db.prepare('SELECT * FROM allocations WHERE id = ?').get(info.lastInsertRowid);
   logActivity(req.user.id, 'allocate', 'asset', assetId, { allocationId: alloc.id });
   // Notify the holder (Asset Assigned).
   if (holderUserId) {

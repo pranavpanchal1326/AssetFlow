@@ -85,19 +85,25 @@ router.post('/', requireAuth, (req, res) => {
   if (rangeErr) {
     return res.status(400).json({ ok: false, error: rangeErr });
   }
-  const clash = findOverlap(assetId, startTime, endTime);
-  if (clash) {
+  // Overlap check + insert run atomically so no conflicting slot can slip in between.
+  const create = db.transaction(() => {
+    const clash = findOverlap(assetId, startTime, endTime);
+    if (clash) return { clash };
+    const info = db.prepare(
+      `INSERT INTO bookings (asset_id, booked_by, start_time, end_time, purpose, status)
+       VALUES (?, ?, ?, ?, ?, 'booked')`
+    ).run(assetId, req.user.id, startTime, endTime, purpose ?? null);
+    return { booking: db.prepare('SELECT * FROM bookings WHERE id = ?').get(info.lastInsertRowid) };
+  });
+  const result = create();
+  if (result.clash) {
     return res.status(409).json({
       ok: false,
-      error: `This slot overlaps an existing booking (${clash.start_time} – ${clash.end_time})`,
-      conflict: shape(clash),
+      error: `This slot overlaps an existing booking (${result.clash.start_time} – ${result.clash.end_time})`,
+      conflict: shape(result.clash),
     });
   }
-  const info = db.prepare(
-    `INSERT INTO bookings (asset_id, booked_by, start_time, end_time, purpose, status)
-     VALUES (?, ?, ?, ?, ?, 'booked')`
-  ).run(assetId, req.user.id, startTime, endTime, purpose ?? null);
-  const b = db.prepare('SELECT * FROM bookings WHERE id = ?').get(info.lastInsertRowid);
+  const b = result.booking;
   logActivity(req.user.id, 'book', 'asset', assetId, { bookingId: b.id, startTime, endTime });
   notify(req.user.id, 'booking_confirmed', 'Booking Confirmed',
     `${asset.tag} ${asset.name} booked ${startTime} – ${endTime}`, `booking:${b.id}`);

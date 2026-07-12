@@ -62,11 +62,13 @@ function bookingHeatmap() {
   return rows;
 }
 
+// Known column order per report — used so CSV export still emits a header row
+// when the underlying report has zero rows.
 const REPORTS = {
-  'utilization': utilization,
-  'maintenance-frequency': maintenanceFrequency,
-  'department-summary': departmentSummary,
-  'booking-heatmap': bookingHeatmap,
+  'utilization': { fn: utilization, columns: ['assetId', 'tag', 'name', 'status', 'allocationCount'] },
+  'maintenance-frequency': { fn: maintenanceFrequency, columns: ['category', 'requestCount'] },
+  'department-summary': { fn: departmentSummary, columns: ['departmentId', 'department', 'activeAllocations'] },
+  'booking-heatmap': { fn: bookingHeatmap, columns: ['day', 'hour', 'count'] },
 };
 
 // Managers-and-up may view reports.
@@ -92,9 +94,8 @@ function csvCell(v) {
   return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
 }
 
-function toCsv(rows) {
-  if (!rows.length) return '';
-  const headers = Object.keys(rows[0]);
+function toCsv(rows, columns) {
+  const headers = columns || (rows.length ? Object.keys(rows[0]) : []);
   const lines = [headers.join(',')];
   for (const r of rows) lines.push(headers.map((hd) => csvCell(r[hd])).join(','));
   return lines.join('\n');
@@ -102,11 +103,11 @@ function toCsv(rows) {
 
 // GET /reports/:name/export → CSV download
 router.get('/:name/export', requireAuth, canView, (req, res) => {
-  const fn = REPORTS[req.params.name];
-  if (!fn) {
+  const report = REPORTS[req.params.name];
+  if (!report) {
     return res.status(404).json({ ok: false, error: 'Unknown report' });
   }
-  const csv = toCsv(fn());
+  const csv = toCsv(report.fn(), report.columns);
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', `attachment; filename="${req.params.name}.csv"`);
   res.send(csv);

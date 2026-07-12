@@ -11,9 +11,8 @@ router.get('/kpis', requireAuth, (req, res) => {
 
   const available = count(`SELECT COUNT(*) c FROM assets WHERE status = 'Available'`);
   const allocated = count(`SELECT COUNT(*) c FROM assets WHERE status = 'Allocated'`);
-  const maintenanceToday = count(
-    `SELECT COUNT(*) c FROM maintenance_requests WHERE date(created_at) = date('now')`
-  );
+  // Assets actively in maintenance right now (clearer than "created today").
+  const maintenanceToday = count(`SELECT COUNT(*) c FROM assets WHERE status = 'Under Maintenance'`);
   const activeBookings = count(
     `SELECT COUNT(*) c FROM bookings
       WHERE status = 'booked'
