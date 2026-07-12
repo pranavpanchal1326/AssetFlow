@@ -1,0 +1,12 @@
+node_modules/
+server/uploads/*
+!server/uploads/.gitkeep
+*.db
+*.db-shm
+*.db-wal
+.env
+.DS_Store
+
+IMPLEMENTATION.md
+PRD.md
+
