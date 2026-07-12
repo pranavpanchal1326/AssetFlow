@@ -1,0 +1,24 @@
+[
+  {
+    "_comment": "CLOSED audit — Q4 2025 Pune HQ audit. All items verified. Clean cycle.",
+    "id": 1,
+    "name": "Q4 2025 — Pune HQ Full Audit",
+    "scope_department_id": null,
+    "scope_location": "Pune HQ",
+    "start_date": "2025-12-01",
+    "end_date": "2025-12-15",
+    "status": "closed",
+    "created_by": 1
+  },
+  {
+    "_comment": "OPEN audit — Q2 2026 Mumbai Branch audit. Has missing + damaged item. Demo-ready for close-cycle flow.",
+    "id": 2,
+    "name": "Q2 2026 — Mumbai Branch Audit",
+    "scope_department_id": null,
+    "scope_location": "Mumbai Branch",
+    "start_date": "2026-06-01",
+    "end_date": "2026-06-30",
+    "status": "open",
+    "created_by": 1
+  }
+]
