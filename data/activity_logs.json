@@ -1,0 +1,596 @@
+[
+  {
+    "id": 1,
+    "user_id": 1,
+    "action": "system_initialized",
+    "entity_type": "system",
+    "entity_id": null,
+    "detail": { "message": "AssetFlow instance initialized. Admin account created for Arjun Mehta." },
+    "created_at": "2025-06-01T09:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "user_id": 1,
+    "action": "department_created",
+    "entity_type": "department",
+    "entity_id": 1,
+    "detail": { "name": "Executive Leadership", "head": "Arjun Mehta" },
+    "created_at": "2025-06-01T09:05:00.000Z"
+  },
+  {
+    "id": 3,
+    "user_id": 1,
+    "action": "department_created",
+    "entity_type": "department",
+    "entity_id": 2,
+    "detail": { "name": "Engineering", "head": "Kavita Sharma" },
+    "created_at": "2025-06-01T09:06:00.000Z"
+  },
+  {
+    "id": 4,
+    "user_id": 1,
+    "action": "department_created",
+    "entity_type": "department",
+    "entity_id": 3,
+    "detail": { "name": "Platform Team", "parent": "Engineering", "head": "Rohan Kulkarni" },
+    "created_at": "2025-06-01T09:07:00.000Z"
+  },
+  {
+    "id": 5,
+    "user_id": 1,
+    "action": "department_created",
+    "entity_type": "department",
+    "entity_id": 4,
+    "detail": { "name": "Quality Assurance", "parent": "Engineering", "head": "Sneha Patil" },
+    "created_at": "2025-06-01T09:08:00.000Z"
+  },
+  {
+    "id": 6,
+    "user_id": 1,
+    "action": "department_created",
+    "entity_type": "department",
+    "entity_id": 5,
+    "detail": { "name": "Human Resources", "head": "Megha Joshi" },
+    "created_at": "2025-06-01T09:09:00.000Z"
+  },
+  {
+    "id": 7,
+    "user_id": 1,
+    "action": "department_created",
+    "entity_type": "department",
+    "entity_id": 6,
+    "detail": { "name": "Operations & Facilities", "head": "Vikram Desai" },
+    "created_at": "2025-06-01T09:10:00.000Z"
+  },
+  {
+    "id": 8,
+    "user_id": 1,
+    "action": "department_created",
+    "entity_type": "department",
+    "entity_id": 7,
+    "detail": { "name": "Design & Surveying", "head": "Amit Khanna" },
+    "created_at": "2025-06-01T09:11:00.000Z"
+  },
+  {
+    "id": 9,
+    "user_id": 1,
+    "action": "role_updated",
+    "entity_type": "user",
+    "entity_id": 7,
+    "detail": { "user": "Deepak Nair", "from_role": "employee", "to_role": "asset_manager" },
+    "created_at": "2025-06-01T10:05:00.000Z"
+  },
+  {
+    "id": 10,
+    "user_id": 7,
+    "action": "asset_registered",
+    "entity_type": "asset",
+    "entity_id": 1,
+    "detail": { "tag": "AF-0001", "name": "ThinkPad X1 Carbon Gen 11", "category": "Electronics — Laptops" },
+    "created_at": "2025-06-02T09:30:00.000Z"
+  },
+  {
+    "id": 11,
+    "user_id": 7,
+    "action": "asset_registered",
+    "entity_type": "asset",
+    "entity_id": 3,
+    "detail": { "tag": "AF-0003", "name": "Dell UltraSharp U2723QE 27\" Monitor", "category": "Electronics — Peripherals" },
+    "created_at": "2025-06-02T10:00:00.000Z"
+  },
+  {
+    "id": 12,
+    "user_id": 7,
+    "action": "asset_registered",
+    "entity_type": "asset",
+    "entity_id": 14,
+    "detail": { "tag": "AF-0014", "name": "MacBook Pro 14\" M3", "category": "Electronics — Laptops" },
+    "created_at": "2025-06-03T09:45:00.000Z"
+  },
+  {
+    "id": 13,
+    "user_id": 7,
+    "action": "asset_allocated",
+    "entity_type": "allocation",
+    "entity_id": 4,
+    "detail": { "asset_tag": "AF-0003", "asset_name": "Dell UltraSharp Monitor", "allocated_to": "Rajesh Iyer", "department": "Platform Team" },
+    "created_at": "2025-06-10T11:00:00.000Z"
+  },
+  {
+    "id": 14,
+    "user_id": 7,
+    "action": "asset_allocated",
+    "entity_type": "allocation",
+    "entity_id": 1,
+    "detail": { "asset_tag": "AF-0014", "asset_name": "MacBook Pro 14\" M3", "allocated_to": "Megha Joshi", "department": "Human Resources" },
+    "created_at": "2025-06-12T10:00:00.000Z"
+  },
+  {
+    "id": 15,
+    "user_id": 7,
+    "action": "asset_allocated",
+    "entity_type": "allocation",
+    "entity_id": 9,
+    "detail": { "asset_tag": "AF-0001", "asset_name": "ThinkPad X1 Carbon Gen 11", "allocated_to": "Kavita Sharma", "department": "Engineering" },
+    "created_at": "2025-06-10T10:00:00.000Z"
+  },
+  {
+    "id": 16,
+    "user_id": 7,
+    "action": "asset_allocated",
+    "entity_type": "allocation",
+    "entity_id": 6,
+    "detail": { "asset_tag": "AF-0008", "asset_name": "HP LaserJet Pro MFP M428fdw", "allocated_to_department": "Operations & Facilities" },
+    "created_at": "2025-06-15T14:00:00.000Z"
+  },
+  {
+    "id": 17,
+    "user_id": 9,
+    "action": "maintenance_requested",
+    "entity_type": "maintenance",
+    "entity_id": 1,
+    "detail": { "asset_tag": "AF-0003", "issue_summary": "Screen flickering intermittently", "priority": "High" },
+    "created_at": "2025-09-15T10:30:00.000Z"
+  },
+  {
+    "id": 18,
+    "user_id": 7,
+    "action": "maintenance_approved",
+    "entity_type": "maintenance",
+    "entity_id": 1,
+    "detail": { "asset_tag": "AF-0003", "status_change": "Available → Under Maintenance" },
+    "created_at": "2025-09-16T10:00:00.000Z"
+  },
+  {
+    "id": 19,
+    "user_id": 7,
+    "action": "asset_status_changed",
+    "entity_type": "asset",
+    "entity_id": 3,
+    "detail": { "tag": "AF-0003", "from_status": "Allocated", "to_status": "Under Maintenance", "reason": "Maintenance approved — screen flickering" },
+    "created_at": "2025-09-16T10:01:00.000Z"
+  },
+  {
+    "id": 20,
+    "user_id": 7,
+    "action": "maintenance_technician_assigned",
+    "entity_type": "maintenance",
+    "entity_id": 1,
+    "detail": { "asset_tag": "AF-0003", "technician": "Suresh Patil (Suresh Electronics)", "contact": "9823456789" },
+    "created_at": "2025-09-18T09:00:00.000Z"
+  },
+  {
+    "id": 21,
+    "user_id": 7,
+    "action": "maintenance_resolved",
+    "entity_type": "maintenance",
+    "entity_id": 1,
+    "detail": { "asset_tag": "AF-0003", "resolution": "Panel replaced under warranty", "status_change": "Under Maintenance → Available" },
+    "created_at": "2025-09-25T14:00:00.000Z"
+  },
+  {
+    "id": 22,
+    "user_id": 7,
+    "action": "asset_status_changed",
+    "entity_type": "asset",
+    "entity_id": 3,
+    "detail": { "tag": "AF-0003", "from_status": "Under Maintenance", "to_status": "Available" },
+    "created_at": "2025-09-25T14:01:00.000Z"
+  },
+  {
+    "id": 23,
+    "user_id": 7,
+    "action": "asset_allocated",
+    "entity_type": "allocation",
+    "entity_id": 5,
+    "detail": { "asset_tag": "AF-0003", "asset_name": "Dell UltraSharp Monitor", "allocated_to": "Rajesh Iyer", "note": "Re-allocated after maintenance completion" },
+    "created_at": "2025-09-26T09:00:00.000Z"
+  },
+  {
+    "id": 24,
+    "user_id": 1,
+    "action": "role_updated",
+    "entity_type": "user",
+    "entity_id": 4,
+    "detail": { "user": "Sneha Patil", "from_role": "employee", "to_role": "dept_head", "reason": "Promoted to head Quality Assurance division" },
+    "created_at": "2025-11-01T09:00:00.000Z"
+  },
+  {
+    "id": 25,
+    "user_id": 1,
+    "action": "audit_cycle_created",
+    "entity_type": "audit_cycle",
+    "entity_id": 1,
+    "detail": { "name": "Q4 2025 — Pune HQ Full Audit", "scope": "Pune HQ", "auditors": ["Suman Das", "Deepak Nair"] },
+    "created_at": "2025-12-01T09:00:00.000Z"
+  },
+  {
+    "id": 26,
+    "user_id": 12,
+    "action": "audit_item_verified",
+    "entity_type": "audit_item",
+    "entity_id": 1,
+    "detail": { "asset_tag": "AF-0001", "result": "verified", "cycle": "Q4 2025 — Pune HQ Full Audit" },
+    "created_at": "2025-12-05T10:00:00.000Z"
+  },
+  {
+    "id": 27,
+    "user_id": 1,
+    "action": "audit_cycle_closed",
+    "entity_type": "audit_cycle",
+    "entity_id": 1,
+    "detail": { "name": "Q4 2025 — Pune HQ Full Audit", "total_items": 14, "verified": 14, "missing": 0, "damaged": 0, "discrepancies": 0 },
+    "created_at": "2025-12-15T17:00:00.000Z"
+  },
+  {
+    "id": 28,
+    "user_id": 5,
+    "action": "asset_returned",
+    "entity_type": "allocation",
+    "entity_id": 1,
+    "detail": { "asset_tag": "AF-0014", "asset_name": "MacBook Pro 14\" M3", "returned_by": "Megha Joshi", "condition_notes": "Minor scuff on lid" },
+    "created_at": "2025-12-20T16:30:00.000Z"
+  },
+  {
+    "id": 29,
+    "user_id": 7,
+    "action": "asset_status_changed",
+    "entity_type": "asset",
+    "entity_id": 14,
+    "detail": { "tag": "AF-0014", "from_status": "Allocated", "to_status": "Available" },
+    "created_at": "2025-12-20T16:31:00.000Z"
+  },
+  {
+    "id": 30,
+    "user_id": 7,
+    "action": "asset_allocated",
+    "entity_type": "allocation",
+    "entity_id": 2,
+    "detail": { "asset_tag": "AF-0014", "asset_name": "MacBook Pro 14\" M3", "allocated_to": "Pooja Venkatesh", "department": "Platform Team", "expected_return": "2026-03-31" },
+    "created_at": "2026-01-05T09:30:00.000Z"
+  },
+  {
+    "id": 31,
+    "user_id": 6,
+    "action": "maintenance_requested",
+    "entity_type": "maintenance",
+    "entity_id": 3,
+    "detail": { "asset_tag": "AF-0022", "issue_summary": "AC compressor not cooling on driver side", "priority": "Medium" },
+    "created_at": "2026-01-20T11:15:00.000Z"
+  },
+  {
+    "id": 32,
+    "user_id": 7,
+    "action": "maintenance_approved",
+    "entity_type": "maintenance",
+    "entity_id": 3,
+    "detail": { "asset_tag": "AF-0022", "status_change": "Available → Under Maintenance" },
+    "created_at": "2026-01-21T09:30:00.000Z"
+  },
+  {
+    "id": 33,
+    "user_id": 7,
+    "action": "maintenance_resolved",
+    "entity_type": "maintenance",
+    "entity_id": 3,
+    "detail": { "asset_tag": "AF-0022", "resolution": "AC compressor replaced by Patil Motors", "status_change": "Under Maintenance → Available" },
+    "created_at": "2026-01-30T12:00:00.000Z"
+  },
+  {
+    "id": 34,
+    "user_id": 16,
+    "action": "asset_returned",
+    "entity_type": "allocation",
+    "entity_id": 7,
+    "detail": { "asset_tag": "AF-0019", "returned_by": "Karthik Bhat", "reason": "Employee offboarding", "condition_notes": "Cracked screen protector, device functional" },
+    "created_at": "2026-02-28T12:00:00.000Z"
+  },
+  {
+    "id": 35,
+    "user_id": 16,
+    "action": "asset_returned",
+    "entity_type": "allocation",
+    "entity_id": 32,
+    "detail": { "asset_tag": "AF-0016", "returned_by": "Karthik Bhat", "reason": "Employee offboarding", "condition_notes": "Device wiped and reset" },
+    "created_at": "2026-02-28T11:30:00.000Z"
+  },
+  {
+    "id": 36,
+    "user_id": 1,
+    "action": "user_deactivated",
+    "entity_type": "user",
+    "entity_id": 16,
+    "detail": { "user": "Karthik Bhat", "reason": "Resigned — last working day 28 Feb 2026", "assets_returned": ["AF-0019", "AF-0016"] },
+    "created_at": "2026-02-28T17:00:00.000Z"
+  },
+  {
+    "id": 37,
+    "user_id": 1,
+    "action": "department_deactivated",
+    "entity_type": "department",
+    "entity_id": 7,
+    "detail": { "name": "Design & Surveying", "reason": "Merged into Engineering department effective 01 Mar 2026" },
+    "created_at": "2026-03-01T09:00:00.000Z"
+  },
+  {
+    "id": 38,
+    "user_id": 1,
+    "action": "role_updated",
+    "entity_type": "user",
+    "entity_id": 14,
+    "detail": { "user": "Amit Khanna", "from_role": "dept_head", "to_role": "employee", "reason": "Design & Surveying merged into Engineering. Amit continues as Senior Engineer.", "department_change": "Design & Surveying → Engineering" },
+    "created_at": "2026-03-01T09:05:00.000Z"
+  },
+  {
+    "id": 39,
+    "user_id": 15,
+    "action": "maintenance_requested",
+    "entity_type": "maintenance",
+    "entity_id": 2,
+    "detail": { "asset_tag": "AF-0014", "issue_summary": "Keyboard keys sticking on left side", "priority": "Medium" },
+    "created_at": "2026-03-15T09:45:00.000Z"
+  },
+  {
+    "id": 40,
+    "user_id": 7,
+    "action": "maintenance_approved",
+    "entity_type": "maintenance",
+    "entity_id": 2,
+    "detail": { "asset_tag": "AF-0014", "status_change": "Allocated → Under Maintenance" },
+    "created_at": "2026-03-16T09:00:00.000Z"
+  },
+  {
+    "id": 41,
+    "user_id": 7,
+    "action": "asset_status_changed",
+    "entity_type": "asset",
+    "entity_id": 14,
+    "detail": { "tag": "AF-0014", "from_status": "Allocated", "to_status": "Under Maintenance" },
+    "created_at": "2026-03-16T09:01:00.000Z"
+  },
+  {
+    "id": 42,
+    "user_id": 7,
+    "action": "maintenance_technician_assigned",
+    "entity_type": "maintenance",
+    "entity_id": 2,
+    "detail": { "asset_tag": "AF-0014", "technician": "Rakesh Tiwari (iCare Service Center)", "contact": "9876543210" },
+    "created_at": "2026-03-18T10:00:00.000Z"
+  },
+  {
+    "id": 43,
+    "user_id": 7,
+    "action": "maintenance_resolved",
+    "entity_type": "maintenance",
+    "entity_id": 2,
+    "detail": { "asset_tag": "AF-0014", "resolution": "Keyboard mechanism replaced. Full key travel restored.", "status_change": "Under Maintenance → Available" },
+    "created_at": "2026-03-28T16:00:00.000Z"
+  },
+  {
+    "id": 44,
+    "user_id": 7,
+    "action": "asset_status_changed",
+    "entity_type": "asset",
+    "entity_id": 14,
+    "detail": { "tag": "AF-0014", "from_status": "Under Maintenance", "to_status": "Available" },
+    "created_at": "2026-03-28T16:01:00.000Z"
+  },
+  {
+    "id": 45,
+    "user_id": 7,
+    "action": "asset_allocated",
+    "entity_type": "allocation",
+    "entity_id": 3,
+    "detail": { "asset_tag": "AF-0014", "asset_name": "MacBook Pro 14\" M3", "allocated_to": "Pooja Venkatesh", "note": "Re-allocated after keyboard repair", "expected_return": "2027-04-01" },
+    "created_at": "2026-04-01T09:00:00.000Z"
+  },
+  {
+    "id": 46,
+    "user_id": 7,
+    "action": "asset_returned",
+    "entity_type": "allocation",
+    "entity_id": 6,
+    "detail": { "asset_tag": "AF-0008", "returned_by_department": "Operations & Facilities", "condition_notes": "Toner smearing on duplex prints. Recommended for retirement." },
+    "created_at": "2026-04-01T11:00:00.000Z"
+  },
+  {
+    "id": 47,
+    "user_id": 7,
+    "action": "asset_status_changed",
+    "entity_type": "asset",
+    "entity_id": 8,
+    "detail": { "tag": "AF-0008", "from_status": "Allocated", "to_status": "Retired", "reason": "Toner mechanism beyond economical repair" },
+    "created_at": "2026-04-02T09:00:00.000Z"
+  },
+  {
+    "id": 48,
+    "user_id": 9,
+    "action": "transfer_requested",
+    "entity_type": "transfer",
+    "entity_id": 1,
+    "detail": { "asset_tag": "AF-0013", "requested_by": "Rajesh Iyer", "current_holder": "Amit Khanna", "reason": "Needs macOS for iOS development stack" },
+    "created_at": "2026-05-18T11:00:00.000Z"
+  },
+  {
+    "id": 49,
+    "user_id": 7,
+    "action": "transfer_approved",
+    "entity_type": "transfer",
+    "entity_id": 1,
+    "detail": { "asset_tag": "AF-0013", "from": "Amit Khanna", "to": "Rajesh Iyer", "approved_by": "Deepak Nair" },
+    "created_at": "2026-05-20T14:30:00.000Z"
+  },
+  {
+    "id": 50,
+    "user_id": 1,
+    "action": "audit_cycle_created",
+    "entity_type": "audit_cycle",
+    "entity_id": 2,
+    "detail": { "name": "Q2 2026 — Mumbai Branch Audit", "scope": "Mumbai Branch", "auditors": ["Suman Das", "Nandini Krishnan"], "date_range": "01 Jun – 30 Jun 2026" },
+    "created_at": "2026-06-01T09:00:00.000Z"
+  },
+  {
+    "id": 51,
+    "user_id": 13,
+    "action": "audit_item_checked",
+    "entity_type": "audit_item",
+    "entity_id": 16,
+    "detail": { "asset_tag": "AF-0028", "result": "verified", "note": "Meeting room Bay View confirmed" },
+    "created_at": "2026-06-04T10:00:00.000Z"
+  },
+  {
+    "id": 52,
+    "user_id": 13,
+    "action": "audit_item_checked",
+    "entity_type": "audit_item",
+    "entity_id": 18,
+    "detail": { "asset_tag": "AF-0030", "result": "damaged", "note": "Dead pixel cluster in lower-right quadrant" },
+    "created_at": "2026-06-04T10:45:00.000Z"
+  },
+  {
+    "id": 53,
+    "user_id": 12,
+    "action": "audit_item_checked",
+    "entity_type": "audit_item",
+    "entity_id": 15,
+    "detail": { "asset_tag": "AF-0025", "result": "missing", "note": "Cisco switch not found at rack B7" },
+    "created_at": "2026-06-05T14:30:00.000Z"
+  },
+  {
+    "id": 54,
+    "user_id": 12,
+    "action": "transfer_requested",
+    "entity_type": "transfer",
+    "entity_id": 2,
+    "detail": { "asset_tag": "AF-0004", "requested_by": "Suman Das", "current_holder": "Ananya Reddy" },
+    "created_at": "2026-06-08T09:45:00.000Z"
+  },
+  {
+    "id": 55,
+    "user_id": 7,
+    "action": "transfer_rejected",
+    "entity_type": "transfer",
+    "entity_id": 2,
+    "detail": { "asset_tag": "AF-0004", "reason": "Ananya Reddy requires dual-screen setup for CAD work", "rejected_by": "Deepak Nair" },
+    "created_at": "2026-06-10T16:00:00.000Z"
+  },
+  {
+    "id": 56,
+    "user_id": 7,
+    "action": "asset_status_changed",
+    "entity_type": "asset",
+    "entity_id": 8,
+    "detail": { "tag": "AF-0008", "from_status": "Retired", "to_status": "Disposed", "reason": "Cleared from inventory. Sent to e-waste vendor." },
+    "created_at": "2026-06-15T10:00:00.000Z"
+  },
+  {
+    "id": 57,
+    "user_id": 17,
+    "action": "maintenance_requested",
+    "entity_type": "maintenance",
+    "entity_id": 6,
+    "detail": { "asset_tag": "AF-0031", "issue_summary": "Fingerprint reader low recognition rate", "priority": "Medium" },
+    "created_at": "2026-06-20T09:00:00.000Z"
+  },
+  {
+    "id": 58,
+    "user_id": 7,
+    "action": "maintenance_rejected",
+    "entity_type": "maintenance",
+    "entity_id": 6,
+    "detail": { "asset_tag": "AF-0031", "reason": "Within manufacturer specs. Staff should re-enroll fingerprints." },
+    "created_at": "2026-06-22T10:00:00.000Z"
+  },
+  {
+    "id": 59,
+    "user_id": 8,
+    "action": "maintenance_requested",
+    "entity_type": "maintenance",
+    "entity_id": 4,
+    "detail": { "asset_tag": "AF-0009", "issue_summary": "Frequent paper jams on tray 1", "priority": "Low" },
+    "created_at": "2026-07-05T14:20:00.000Z"
+  },
+  {
+    "id": 60,
+    "user_id": 7,
+    "action": "maintenance_approved",
+    "entity_type": "maintenance",
+    "entity_id": 4,
+    "detail": { "asset_tag": "AF-0009", "status_change": "Available → Under Maintenance" },
+    "created_at": "2026-07-06T09:00:00.000Z"
+  },
+  {
+    "id": 61,
+    "user_id": 17,
+    "action": "transfer_requested",
+    "entity_type": "transfer",
+    "entity_id": 3,
+    "detail": { "asset_tag": "AF-0018", "requested_by": "Lakshmi Menon", "current_holder": "Vikram Desai", "reason": "Needed for HR onboarding photo sessions" },
+    "created_at": "2026-07-08T10:15:00.000Z"
+  },
+  {
+    "id": 62,
+    "user_id": 3,
+    "action": "maintenance_requested",
+    "entity_type": "maintenance",
+    "entity_id": 7,
+    "detail": { "asset_tag": "AF-0011", "issue_summary": "RAID controller predictive failure on disk 2", "priority": "High" },
+    "created_at": "2026-07-08T08:30:00.000Z"
+  },
+  {
+    "id": 63,
+    "user_id": 7,
+    "action": "maintenance_approved",
+    "entity_type": "maintenance",
+    "entity_id": 7,
+    "detail": { "asset_tag": "AF-0011", "technician_assigned": "Dell ProSupport (Case #SR1847293)" },
+    "created_at": "2026-07-09T09:00:00.000Z"
+  },
+  {
+    "id": 64,
+    "user_id": 11,
+    "action": "maintenance_requested",
+    "entity_type": "maintenance",
+    "entity_id": 5,
+    "detail": { "asset_tag": "AF-0034", "issue_summary": "WiFi drops every 2-3 hours", "priority": "High" },
+    "created_at": "2026-07-10T16:00:00.000Z"
+  },
+  {
+    "id": 65,
+    "user_id": 3,
+    "action": "booking_created",
+    "entity_type": "booking",
+    "entity_id": 4,
+    "detail": { "asset_tag": "AF-0026", "room": "Agile Den", "slot": "12 Jul 2026, 09:00–10:00", "purpose": "Platform Team daily standup" },
+    "created_at": "2026-07-10T13:00:00.000Z"
+  },
+  {
+    "id": 66,
+    "user_id": 4,
+    "action": "booking_created",
+    "entity_type": "booking",
+    "entity_id": 5,
+    "detail": { "asset_tag": "AF-0026", "room": "Agile Den", "slot": "12 Jul 2026, 10:00–11:00", "note": "Back-to-back with Platform Team standup — boundary accepted" },
+    "created_at": "2026-07-10T14:00:00.000Z"
+  }
+]
