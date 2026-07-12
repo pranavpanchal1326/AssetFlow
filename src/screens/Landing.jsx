@@ -9,25 +9,42 @@ import {
   Lock, 
   Eye, 
   FileText,
-  UserCheck
+  UserCheck,
+  Sun,
+  Moon,
+  Search,
+  Terminal,
+  Calendar,
+  Wrench,
+  CheckSquare
 } from "lucide-react";
 
 export const Landing = ({ onEnterApp }) => {
   const [activeStep, setActiveStep] = useState(0);
   const [showBlueprintModal, setShowBlueprintModal] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [theme, setTheme] = useState("light");
+  const [commandQuery, setCommandQuery] = useState("");
   const containerRef = useRef(null);
 
+  // Sync theme with body/HTML document attribute
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const height = window.innerHeight || 800;
-      const step = Math.round(scrollY / height);
-      // We have 5 sections (0: Hero, 1: Handoff, 2: Overdue, 3: Lost, 4: Refusal, 5: Footer)
-      setActiveStep(Math.min(5, Math.max(0, step)));
-    };
+    document.body.setAttribute("data-theme", theme);
+  }, [theme]);
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+  // Command Palette global keyboard listener
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setShowCommandPalette((prev) => !prev);
+      }
+      if (e.key === "Escape") {
+        setShowCommandPalette(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   const scrollToSection = (index) => {
@@ -37,6 +54,24 @@ export const Landing = ({ onEnterApp }) => {
       behavior: "smooth"
     });
   };
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === "light" ? "dark" : "light");
+  };
+
+  const commandPaletteItems = [
+    { label: "Enter AssetFlow App", shortcut: "Enter", action: onEnterApp },
+    { label: `Toggle Theme (Currently ${theme === "light" ? "Light" : "Dark"})`, shortcut: "⌘T", action: toggleTheme },
+    { label: "View Technical Blueprint Spec", shortcut: "⌘B", action: () => { setShowBlueprintModal(true); setShowCommandPalette(false); } },
+    { label: "Scroll to Living Constellation", shortcut: "1", action: () => { scrollToSection(0); setShowCommandPalette(false); } },
+    { label: "Scroll to Atom 1: Handoffs", shortcut: "2", action: () => { scrollToSection(1); setShowCommandPalette(false); } },
+    { label: "Scroll to Atom 2: Overdue alert", shortcut: "3", action: () => { scrollToSection(2); setShowCommandPalette(false); } },
+    { label: "Scroll to Atom 4: Conflict Refusal", shortcut: "4", action: () => { scrollToSection(4); setShowCommandPalette(false); } }
+  ];
+
+  const filteredCommandItems = commandPaletteItems.filter(item => 
+    item.label.toLowerCase().includes(commandQuery.toLowerCase())
+  );
 
   return (
     <div className="landing-hero" ref={containerRef} style={{ height: "650vh" }}>
@@ -56,7 +91,27 @@ export const Landing = ({ onEnterApp }) => {
           <span className="landing-nav-link" onClick={() => scrollToSection(4)}>Governance</span>
         </nav>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          {/* Quick-Search Search Trigger Button */}
+          <button 
+            className="btn" 
+            onClick={() => setShowCommandPalette(true)}
+            style={{ height: "32px", padding: "0 12px", fontSize: "12px", gap: "6px", display: "flex", alignItems: "center" }}
+          >
+            <Search size={12} />
+            <span style={{ color: "var(--text-3)" }}>Search</span>
+            <kbd className="cmd-palette-shortcut" style={{ fontSize: "8px", padding: "1px 4px" }}>Ctrl+K</kbd>
+          </button>
+
+          {/* Sun/Moon Theme Switcher Toggle */}
+          <button 
+            className="theme-toggle-btn" 
+            onClick={toggleTheme}
+            title={`Switch to ${theme === "light" ? "Dark" : "Light"} Mode`}
+          >
+            {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
+          </button>
+
           <button 
             className="btn" 
             onClick={() => setShowBlueprintModal(true)}
@@ -65,6 +120,7 @@ export const Landing = ({ onEnterApp }) => {
             <FileText size={12} />
             <span>Blueprint</span>
           </button>
+          
           <button className="btn btn-primary" onClick={onEnterApp} style={{ height: "32px", fontSize: "12px" }}>
             <span>Enter App</span>
             <ArrowRight size={12} />
@@ -121,9 +177,7 @@ export const Landing = ({ onEnterApp }) => {
               <span>Introducing AssetFlow v1.0</span>
             </div>
 
-            <h1 style={{ fontSize: "32px", fontWeight: "700", color: "var(--ink)", marginBottom: "10px", letterSpacing: "-0.015em" }}>
-              Every object has a person.
-            </h1>
+            <h1>Every object has a person.</h1>
             <p style={{ fontSize: "14px", color: "var(--text-2)", marginBottom: "20px", maxWidth: "480px", lineHeight: "1.4" }}>
               A real-time spring physics constellation that tethers your physical inventory directly to live corporate custody.
             </p>
@@ -148,7 +202,7 @@ export const Landing = ({ onEnterApp }) => {
             </div>
           </div>
 
-          {/* Desktop Mockup Preview Frame (Placed outside the card to allow proper width expansion) */}
+          {/* Desktop Mockup Preview Frame (High fidelity design update) */}
           <div className="desktop-mockup" style={{ maxWidth: "760px", width: "100%", pointerEvents: "auto", marginTop: "0" }}>
             <div className="desktop-mockup-header" style={{ height: "32px" }}>
               <span className="mock-dot" style={{ backgroundColor: "#FF5F56", width: "8px", height: "8px" }} />
@@ -157,31 +211,91 @@ export const Landing = ({ onEnterApp }) => {
               <span style={{ fontSize: "10px", color: "var(--text-3)", fontFamily: "monospace", marginLeft: "12px" }}>http://localhost:5173/dashboard</span>
             </div>
             <div className="desktop-mockup-body" style={{ height: "220px" }}>
-              <div className="mock-sidebar" style={{ width: "130px", padding: "12px 10px" }}>
-                <div className="mock-sidebar-item active" style={{ height: "18px", marginBottom: "8px" }} />
-                <div className="mock-sidebar-item" style={{ height: "18px", marginBottom: "8px" }} />
-                <div className="mock-sidebar-item" style={{ height: "18px" }} />
+              
+              {/* Mock Sidebar with Lucide Icons */}
+              <div className="mock-sidebar" style={{ width: "140px", padding: "12px 10px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", height: "18px", marginBottom: "8px", opacity: 0.85 }}>
+                  <Terminal size={10} color="var(--accent)" />
+                  <div style={{ height: "6px", width: "40px", backgroundColor: "var(--text-3)", borderRadius: "2px" }} />
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", height: "18px", marginBottom: "8px", opacity: 0.5 }}>
+                  <Calendar size={10} />
+                  <div style={{ height: "6px", width: "35px", backgroundColor: "var(--text-3)", borderRadius: "2px" }} />
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", height: "18px", marginBottom: "8px", opacity: 0.5 }}>
+                  <Wrench size={10} />
+                  <div style={{ height: "6px", width: "30px", backgroundColor: "var(--text-3)", borderRadius: "2px" }} />
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", height: "18px", opacity: 0.5 }}>
+                  <CheckSquare size={10} />
+                  <div style={{ height: "6px", width: "35px", backgroundColor: "var(--text-3)", borderRadius: "2px" }} />
+                </div>
               </div>
-              <div className="mock-content" style={{ padding: "14px", gap: "12px" }}>
-                <div className="mock-topbar" style={{ height: "20px" }} />
+
+              {/* Mock Dashboard Area */}
+              <div className="mock-content" style={{ padding: "14px", gap: "10px" }}>
+                <div className="mock-topbar" style={{ height: "20px", display: "flex", alignItems: "center", padding: "0 8px", fontSize: "9px", color: "var(--text-3)", fontWeight: "500" }}>
+                  <span>Triage Dashboard</span>
+                </div>
+                
+                {/* 3 KPI Widgets */}
                 <div className="mock-grid" style={{ gap: "10px" }}>
                   <div className="mock-card" style={{ height: "56px", padding: "8px" }}>
-                    <span style={{ fontSize: "7px", color: "var(--text-3)" }}>ACTIVE CUSTODY</span>
-                    <span style={{ fontSize: "14px", fontWeight: "600" }}>14 Assets</span>
+                    <span style={{ fontSize: "7px", color: "var(--text-3)", fontWeight: "600", textTransform: "uppercase" }}>Active Custody</span>
+                    <span style={{ fontSize: "14px", fontWeight: "600", color: "var(--ink)", fontFamily: "monospace" }}>14 Assets</span>
                   </div>
                   <div className="mock-card" style={{ height: "56px", padding: "8px" }}>
-                    <span style={{ fontSize: "7px", color: "var(--text-3)" }}>OVERDUE STATUS</span>
-                    <span style={{ fontSize: "14px", fontWeight: "600", color: "var(--alert)" }}>2 Overdue</span>
+                    <span style={{ fontSize: "7px", color: "var(--text-3)", fontWeight: "600", textTransform: "uppercase" }}>Overdue Warning</span>
+                    <span style={{ fontSize: "14px", fontWeight: "600", color: "var(--alert)", fontFamily: "monospace" }}>2 Overdue</span>
                   </div>
                   <div className="mock-card" style={{ height: "56px", padding: "8px" }}>
-                    <span style={{ fontSize: "7px", color: "var(--text-3)" }}>ACTIVE AUDIT</span>
-                    <span style={{ fontSize: "14px", fontWeight: "600", color: "var(--available)" }}>96.5% Acc</span>
+                    <span style={{ fontSize: "7px", color: "var(--text-3)", fontWeight: "600", textTransform: "uppercase" }}>Audit Health</span>
+                    <span style={{ fontSize: "14px", fontWeight: "600", color: "var(--available)", fontFamily: "monospace" }}>96.5% Acc</span>
                   </div>
                 </div>
-                <div className="mock-table" style={{ padding: "8px" }}>
-                  <div className="mock-table-row" style={{ height: "6px", marginBottom: "6px", width: "50%" }} />
-                  <div className="mock-table-row" style={{ height: "6px", width: "70%" }} />
+                
+                {/* Mock High-Fidelity Table and SVG Utilization Chart side-by-side */}
+                <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "10px", flex: 1, minHeight: 0 }}>
+                  <div className="mock-table" style={{ padding: "8px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--hairline-2)", pb: "4px", fontSize: "7px", color: "var(--text-3)", fontWeight: "600", textTransform: "uppercase" }}>
+                      <span>Asset</span>
+                      <span>Custodian</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span className="mock-badge-tag">AF-0001</span>
+                      <div className="mock-person-row">
+                        <span className="mock-avatar-circle">PS</span>
+                        <span>Priya</span>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span className="mock-badge-tag" style={{ color: "var(--alert)", borderColor: "rgba(192,57,43,0.3)", backgroundColor: "var(--alert-soft)" }}>AF-0008</span>
+                      <div className="mock-person-row">
+                        <span className="mock-avatar-circle">ER</span>
+                        <span>Elena</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mock-table" style={{ padding: "8px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                    <span style={{ fontSize: "7px", color: "var(--text-3)", fontWeight: "600", textTransform: "uppercase" }}>Weekly Density</span>
+                    
+                    {/* SVG Utilization Bar graph */}
+                    <div className="mock-svg-chart">
+                      {[30, 55, 20, 75, 45, 90, 35].map((h, idx) => (
+                        <div 
+                          key={idx} 
+                          className="mock-chart-bar" 
+                          style={{ 
+                            height: `${h}%`, 
+                            backgroundColor: idx === 5 ? "var(--alert)" : "var(--accent)" 
+                          }} 
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
+
               </div>
             </div>
           </div>
@@ -336,6 +450,50 @@ export const Landing = ({ onEnterApp }) => {
               <button className="btn btn-primary" onClick={() => setShowBlueprintModal(false)}>
                 <span>Close Blueprint</span>
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sleek Command Palette ⌘K Overlay Modal */}
+      {showCommandPalette && (
+        <div className="modal-overlay" onClick={() => setShowCommandPalette(false)} style={{ backgroundColor: "rgba(24, 24, 27, 0.3)" }}>
+          <div className="cmd-palette-wrapper" onClick={(e) => e.stopPropagation()}>
+            <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+              <Search size={16} style={{ position: "absolute", left: "20px", color: "var(--text-3)" }} />
+              <input 
+                type="text"
+                className="cmd-palette-input"
+                placeholder="Type a command or search sections..."
+                value={commandQuery}
+                onChange={(e) => setCommandQuery(e.target.value)}
+                autoFocus
+                style={{ paddingLeft: "48px" }}
+              />
+            </div>
+            <div className="cmd-palette-results">
+              {filteredCommandItems.length > 0 ? (
+                filteredCommandItems.map((item, idx) => (
+                  <div 
+                    key={idx} 
+                    className="cmd-palette-item"
+                    onClick={() => {
+                      item.action();
+                      setShowCommandPalette(false);
+                    }}
+                  >
+                    <span>{item.label}</span>
+                    <kbd className="cmd-palette-shortcut">{item.shortcut}</kbd>
+                  </div>
+                ))
+              ) : (
+                <div style={{ padding: "16px", textAlign: "center", color: "var(--text-3)", fontSize: "13px" }}>
+                  No matching command results found.
+                </div>
+              )}
+            </div>
+            <div style={{ height: "32px", borderTop: "1px solid var(--hairline-2)", backgroundColor: "var(--fill)", display: "flex", alignItems: "center", justifyContent: "flex-end", padding: "0 16px", fontSize: "10px", color: "var(--text-3)" }}>
+              <span>Press <kbd className="cmd-palette-shortcut" style={{ fontSize: "8px", padding: "1px 4px" }}>Esc</kbd> to close</span>
             </div>
           </div>
         </div>

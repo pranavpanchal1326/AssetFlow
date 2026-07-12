@@ -19,22 +19,7 @@ export const ConstellationCanvas = ({ activeStep = 0, prefersReducedMotion = fal
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
-    // Track mouse position relative to canvas coordinate space
-    const handleMouseMove = (e) => {
-      const rect = canvas.getBoundingClientRect();
-      // Translate screen coordinates to canvas pixels
-      mouseRef.current = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-      };
-    };
-
-    const handleMouseLeave = () => {
-      mouseRef.current = { x: null, y: null };
-    };
-
-    canvas.addEventListener("mousemove", handleMouseMove);
-    canvas.addEventListener("mouseleave", handleMouseLeave);
+    // (Mouse events moved below camera initialization to prevent reference errors)
 
     // Color tokens
     const colors = {
@@ -98,6 +83,75 @@ export const ConstellationCanvas = ({ activeStep = 0, prefersReducedMotion = fal
     // View camera variables (supports scroll zooming and focusing)
     let camera = { x: canvas.width / 2, y: canvas.height / 2, zoom: 1.0 };
     let targetCamera = { x: canvas.width / 2, y: canvas.height / 2, zoom: 1.0 };
+
+    // Click & Drag node state
+    let draggedNode = null;
+
+    // Track mouse position relative to canvas coordinate space
+    const handleMouseMove = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      
+      mouseRef.current = { x: mx, y: my };
+
+      // Translate screen coordinate to scaled/offset camera coordinate space
+      const mcx = (mx - canvas.width / 2) / camera.zoom + camera.x;
+      const mcy = (my - canvas.height / 2) / camera.zoom + camera.y;
+
+      if (draggedNode) {
+        draggedNode.x = mcx;
+        draggedNode.y = mcy;
+        draggedNode.vx = 0;
+        draggedNode.vy = 0;
+      } else {
+        // Change cursor to pointer if hovering over a node
+        const hoverNode = nodes.find(node => {
+          const dist = Math.hypot(node.x - mcx, node.y - mcy);
+          const clickRadius = node.type === "person" ? node.radius : 32;
+          return dist < clickRadius + 15;
+        });
+        canvas.style.cursor = hoverNode ? "pointer" : "default";
+      }
+    };
+
+    const handleMouseLeave = () => {
+      mouseRef.current = { x: null, y: null };
+      draggedNode = null;
+    };
+
+    const handleMouseDown = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      const mcx = (mx - canvas.width / 2) / camera.zoom + camera.x;
+      const mcy = (my - canvas.height / 2) / camera.zoom + camera.y;
+
+      const clickedNode = nodes.find(node => {
+        const dist = Math.hypot(node.x - mcx, node.y - mcy);
+        const clickRadius = node.type === "person" ? node.radius : 32;
+        return dist < clickRadius + 15;
+      });
+
+      if (clickedNode) {
+        draggedNode = clickedNode;
+        canvas.style.cursor = "grabbing";
+        e.preventDefault();
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (draggedNode) {
+        draggedNode = null;
+        canvas.style.cursor = "pointer";
+      }
+    };
+
+    canvas.addEventListener("mousemove", handleMouseMove);
+    canvas.addEventListener("mouseleave", handleMouseLeave);
+    canvas.addEventListener("mousedown", handleMouseDown);
+    window.addEventListener("mouseup", handleMouseUp);
 
     // The Main Physics & Drawing loop
     const tick = () => {
@@ -525,6 +579,8 @@ export const ConstellationCanvas = ({ activeStep = 0, prefersReducedMotion = fal
       window.removeEventListener("resize", resizeCanvas);
       canvas.removeEventListener("mousemove", handleMouseMove);
       canvas.removeEventListener("mouseleave", handleMouseLeave);
+      canvas.removeEventListener("mousedown", handleMouseDown);
+      window.removeEventListener("mouseup", handleMouseUp);
     };
   }, [activeStep, prefersReducedMotion]);
 

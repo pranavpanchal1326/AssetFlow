@@ -33,6 +33,7 @@
   --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.03);
   --shadow-medium: 0 4px 20px rgba(0, 0, 0, 0.06), 0 10px 30px rgba(0, 0, 0, 0.04);
   --shadow-large: 0 20px 40px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02);
+  --shadow-premium: 0 30px 70px rgba(0, 0, 0, 0.06), 0 10px 20px rgba(44, 95, 224, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 /* Dark variant - graphite #1A1917, paper #EDE8DE, status +15% L */
@@ -57,6 +58,7 @@
   --alert: #E74C3C;
   --alert-soft: #2D1F1E;
   --disposed: #71717A;
+  --shadow-premium: 0 30px 70px rgba(0, 0, 0, 0.35), 0 10px 20px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 /* General Resets */
@@ -76,6 +78,7 @@ body {
   line-height: 1.5;
   overflow-x: hidden;
   letter-spacing: -0.006em;
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 /* Global distressed paper noise texture overlay (Premium touch) */
@@ -1339,6 +1342,10 @@ a {
   padding: 0 40px;
 }
 
+[data-theme="dark"] .landing-nav {
+  background-color: rgba(19, 19, 21, 0.7);
+}
+
 .landing-nav-links {
   display: flex;
   gap: 24px;
@@ -1388,15 +1395,15 @@ a {
   background-color: var(--canvas);
   border: 1px solid var(--hairline);
   border-radius: 8px;
-  box-shadow: var(--shadow-large);
+  box-shadow: var(--shadow-premium);
   overflow: hidden;
   margin-top: 32px;
   transition: var(--transition-slow);
 }
 
 .desktop-mockup:hover {
-  transform: translateY(-8px) scale(1.01);
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px) scale(1.005);
+  box-shadow: var(--shadow-large);
 }
 
 .desktop-mockup-header {
@@ -1425,7 +1432,7 @@ a {
 .mock-sidebar {
   width: 160px;
   border-right: 1px solid var(--hairline);
-  background-color: #FFFFFF;
+  background-color: var(--surface);
   padding: 16px 12px;
   display: flex;
   flex-direction: column;
@@ -1449,11 +1456,12 @@ a {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  background-color: var(--canvas);
 }
 
 .mock-topbar {
   height: 28px;
-  background-color: #FFFFFF;
+  background-color: var(--surface);
   border: 1px solid var(--hairline);
   border-radius: 4px;
   width: 100%;
@@ -1467,7 +1475,7 @@ a {
 
 .mock-card {
   height: 80px;
-  background-color: #FFFFFF;
+  background-color: var(--surface);
   border: 1px solid var(--hairline);
   border-radius: 4px;
   padding: 12px;
@@ -1478,7 +1486,7 @@ a {
 
 .mock-table {
   flex: 1;
-  background-color: #FFFFFF;
+  background-color: var(--surface);
   border: 1px solid var(--hairline);
   border-radius: 4px;
   padding: 12px;
@@ -1557,6 +1565,176 @@ a {
   justify-content: space-between;
   align-items: center;
   font-size: 11px;
+}
+
+/* ------------------------------------------------------------- */
+/* PREMIUM DESIGN CRITIQUE ELEVATIONS (Metallic Headers & Cards) */
+/* ------------------------------------------------------------- */
+
+/* Apple-style metallic text gradients */
+.landing-hero-card h1 {
+  background: linear-gradient(135deg, var(--ink) 30%, var(--text-2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-family: var(--font-sans);
+  letter-spacing: -0.035em !important;
+  font-weight: 700;
+}
+
+/* Custom premium card overlay border glow */
+.landing-hero-card {
+  border: 1px solid rgba(228, 228, 225, 0.6) !important;
+  box-shadow: var(--shadow-premium) !important;
+}
+
+[data-theme="dark"] .landing-hero-card {
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* High fidelity mockup mock elements styling */
+.mock-badge-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--accent);
+  border: 1px dotted rgba(44, 95, 224, 0.3);
+  padding: 1px 4px;
+  border-radius: 2px;
+  background-color: var(--accent-soft);
+}
+
+.mock-person-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.mock-avatar-circle {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: var(--fill);
+  border: 1px solid var(--hairline);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 7px;
+  color: var(--text-3);
+}
+
+.mock-svg-chart {
+  display: flex;
+  align-items: flex-end;
+  height: 48px;
+  gap: 6px;
+  width: 100%;
+  padding-top: 4px;
+}
+
+.mock-chart-bar {
+  flex: 1;
+  background-color: var(--accent-soft);
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  transition: var(--transition-smooth);
+}
+
+.mock-chart-bar:hover {
+  background-color: var(--accent);
+}
+
+/* Command Palette Overlay glass styling */
+.cmd-palette-wrapper {
+  position: fixed;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 520px;
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(228, 228, 225, 0.8);
+  border-radius: 8px;
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.15), 0 10px 30px rgba(0, 0, 0, 0.08);
+  z-index: 1100;
+  overflow: hidden;
+  animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+[data-theme="dark"] .cmd-palette-wrapper {
+  background-color: rgba(28, 28, 30, 0.85);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.5), 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.cmd-palette-input {
+  width: 100%;
+  padding: 16px 20px;
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  color: var(--ink);
+  border-bottom: 1px solid var(--hairline);
+  outline: none;
+}
+
+.cmd-palette-results {
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.cmd-palette-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.cmd-palette-item:hover,
+.cmd-palette-item.selected {
+  background-color: var(--fill);
+  color: var(--ink);
+}
+
+.cmd-palette-shortcut {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+  background-color: var(--fill);
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--hairline);
+}
+
+/* Theme toggle sun-moon custom hover */
+.theme-toggle-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-3);
+  transition: var(--transition-smooth);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.theme-toggle-btn:hover {
+  background-color: var(--fill);
+  color: var(--ink);
+  transform: rotate(20deg);
 }
 
 /* Responsive adjustments */
