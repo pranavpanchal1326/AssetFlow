@@ -1,13 +1,30 @@
 // SQLite database bootstrap + schema (PRD §6).
 // Single better-sqlite3 connection shared across the app.
+const fs = require('fs');
 const path = require('path');
 const Database = require('better-sqlite3');
 
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, '..', 'assetflow.db');
 
+// If DB_PATH is inside a volume and doesn't exist, copy the pre-seeded DB from the package
+if (!fs.existsSync(DB_PATH)) {
+  const defaultDbPath = path.join(__dirname, '..', 'assetflow.db');
+  if (fs.existsSync(defaultDbPath) && path.resolve(DB_PATH) !== path.resolve(defaultDbPath)) {
+    console.log(`Database not found at ${DB_PATH}. Copying pre-seeded database from ${defaultDbPath}...`);
+    try {
+      fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+      fs.copyFileSync(defaultDbPath, DB_PATH);
+      console.log('Database successfully copied.');
+    } catch (err) {
+      console.error('Failed to copy pre-seeded database:', err);
+    }
+  }
+}
+
 const db = new Database(DB_PATH);
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
+
 
 // Full schema. Every table from PRD §6. Idempotent (IF NOT EXISTS).
 db.exec(`
